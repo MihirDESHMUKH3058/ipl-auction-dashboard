@@ -4,6 +4,7 @@ import FilterBar from './components/FilterBar';
 import PlayerGrid from './components/PlayerGrid';
 import AuctionAdminPanel from './components/AuctionAdminPanel';
 import TeamRosters from './components/TeamRosters';
+import PlayerBags from './components/PlayerBags';
 import './App.css';
 
 function App() {
@@ -98,6 +99,11 @@ function App() {
               <p>Please enter the correct passcode in the navigation tab to unlock.</p>
             </div>
           )
+        ) : activeTab === 'bags' ? (
+          <PlayerBags 
+            players={players} 
+            auctionRecords={auctionRecords} 
+          />
         ) : (
           <TeamRosters 
             players={players} 
