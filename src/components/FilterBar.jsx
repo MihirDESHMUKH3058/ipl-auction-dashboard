@@ -1,0 +1,63 @@
+import React from 'react';
+import './FilterBar.css';
+
+export default function FilterBar({ filters, setFilters }) {
+  const handleChange = (e) => {
+    setFilters({
+      ...filters,
+      [e.target.name]: e.target.value
+    });
+  };
+
+  return (
+    <div className="filter-sidebar-container">
+      <h3 className="filter-title">Filters</h3>
+      
+      <div className="filter-group">
+        <label>Role</label>
+        <select name="role" value={filters.role} onChange={handleChange}>
+          <option value="All">All Roles</option>
+          <option value="Batsman">Batsman</option>
+          <option value="Bowler">Bowler</option>
+          <option value="All-Rounder">All-Rounder</option>
+          <option value="Wicket-Keeper">Wicket-Keeper</option>
+        </select>
+      </div>
+
+      <div className="filter-group">
+        <label>Origin</label>
+        <select name="origin" value={filters.origin} onChange={handleChange}>
+          <option value="All">All Origins</option>
+          <option value="Indian">Indian</option>
+          <option value="Overseas">Overseas</option>
+        </select>
+      </div>
+
+      <div className="filter-group">
+        <label>Rating</label>
+        <select name="rating" value={filters.rating} onChange={handleChange}>
+          <option value="All">All Ratings</option>
+          <option value="10">10 Stars</option>
+          <option value="9">9+ Stars</option>
+          <option value="8">8+ Stars</option>
+          <option value="7">7+ Stars</option>
+        </select>
+      </div>
+
+      <div className="filter-group">
+        <label>Max Base Price</label>
+        <select name="price" value={filters.price} onChange={handleChange}>
+          <option value="All">Any Price</option>
+          <option value="50">₹ 50L & Below</option>
+          <option value="100">₹ 1Cr & Below</option>
+          <option value="150">₹ 1.5Cr & Below</option>
+          <option value="200">₹ 2Cr & Below</option>
+        </select>
+      </div>
+
+      <button className="reset-btn" onClick={() => setFilters({ role: 'All', origin: 'All', rating: 'All', price: 'All' })}>
+        Reset Filters
+      </button>
+    </div>
+  );
+}
