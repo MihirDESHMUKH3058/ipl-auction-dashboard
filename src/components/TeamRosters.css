@@ -49,10 +49,19 @@
   display: flex;
   flex-direction: column;
   align-items: flex-end;
+  gap: 0.3rem;
   font-size: 0.8rem;
-  color: rgba(255,255,255,0.9);
   font-weight: 600;
 }
+
+.stat-badge {
+  background: rgba(0, 0, 0, 0.4);
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+}
+.stat-badge.purse { color: var(--neon-blue); }
+.stat-badge.spent { color: var(--neon-pink); }
+.stat-badge.remaining { color: var(--neon-green); }
 
 .team-list {
   padding: 1rem;

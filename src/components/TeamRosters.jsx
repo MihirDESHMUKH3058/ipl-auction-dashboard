@@ -26,10 +26,15 @@ export default function TeamRosters({ players, auctionRecords }) {
       totalSpentLakhs += (parseInt(numStr, 10) / 100000);
     });
 
+    const totalPurseLakhs = 2000; // 20 Cr
+    const remainingPurseLakhs = totalPurseLakhs - totalSpentLakhs;
+
     return {
       name: teamName,
       roster,
-      totalSpentLakhs
+      totalSpentLakhs,
+      totalPurseLakhs,
+      remainingPurseLakhs
     };
   });
 
@@ -42,8 +47,10 @@ export default function TeamRosters({ players, auctionRecords }) {
             <div className="team-header">
               <h3>{team.name}</h3>
               <div className="team-stats">
-                <span>{team.roster.length} Players</span>
-                {team.roster.length > 0 && <span>Spent: {team.totalSpentLakhs}L</span>}
+                <span className="stat-badge">{team.roster.length} Players</span>
+                <span className="stat-badge purse">Purse: 20 Cr</span>
+                <span className="stat-badge spent">Spent: {team.totalSpentLakhs >= 100 ? `${(team.totalSpentLakhs / 100).toFixed(2)} Cr` : `${team.totalSpentLakhs} L`}</span>
+                <span className="stat-badge remaining">Left: {team.remainingPurseLakhs >= 100 ? `${(team.remainingPurseLakhs / 100).toFixed(2)} Cr` : `${team.remainingPurseLakhs} L`}</span>
               </div>
             </div>
             <div className="team-list">
@@ -54,7 +61,9 @@ export default function TeamRosters({ players, auctionRecords }) {
                   <div key={player.id} className="roster-player">
                     <div className="roster-player-info">
                       <span className="roster-name">{player.name}</span>
-                      <span className="roster-role">{player.role} • {player.overseas === 'Overseas' ? '✈️' : '🇮🇳'}</span>
+                      <span className="roster-role">
+                        {player.role} • {player.overseas === 'Overseas' ? '✈️' : '🇮🇳'} • ⭐ {player.rating || 'N/A'}
+                      </span>
                     </div>
                     <span className="roster-price">{player.finalPrice}</span>
                   </div>
