@@ -72,7 +72,7 @@ export default function PlayerBags({ players, auctionRecords }) {
 
   return (
     <div className="bags-view">
-      <div className="bags-header-section">
+      <div className="bags-sticky-header">
         <div className="bags-nav-bar">
           {bags.map((bag, index) => (
             <button
@@ -89,20 +89,20 @@ export default function PlayerBags({ players, auctionRecords }) {
             </button>
           ))}
         </div>
-        
-        <div className="bag-controls">
-          <div className="bag-info">
-            <h2>{activeBag.title}</h2>
-            <p>{activeBag.players.length} Total Players</p>
-          </div>
-          <div className="bag-search">
-            <input 
-              type="text" 
-              placeholder="Search in this bag..." 
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </div>
+      </div>
+      
+      <div className="bags-controls-section">
+        <div className="bag-info">
+          <h2>{activeBag.title}</h2>
+          <p>{activeBag.players.length} Total Players</p>
+        </div>
+        <div className="bag-search">
+          <input 
+            type="text" 
+            placeholder="Search in this bag..." 
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
         </div>
       </div>
 

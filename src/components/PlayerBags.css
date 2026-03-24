@@ -7,18 +7,23 @@
   min-height: calc(100vh - 80px);
 }
 
-.bags-header-section {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
+.bags-sticky-header {
   position: sticky;
-  top: -2rem; /* Offset app-container padding */
+  top: -2rem; 
   z-index: 100;
   background: var(--bg-main);
   padding: 1rem 0;
   margin-top: -1rem;
-  border-bottom: 1px solid rgba(0, 229, 255, 0.2);
+  border-bottom: 1px solid rgba(0, 229, 255, 0.1);
   backdrop-filter: blur(10px);
+}
+
+.bags-controls-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .bags-nav-bar {
@@ -127,6 +132,7 @@
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
   gap: 2.5rem;
+  scroll-margin-top: 100px; /* Gap for sticky nav */
 }
 
 .empty-bag {
