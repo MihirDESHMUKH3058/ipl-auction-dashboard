@@ -9,7 +9,7 @@
     "rating": 10,
     "basePrice": "\u20b92,00,00,000",
     "status": "Available",
-    "image_file": null
+    "image_file": "rohit sharma.avif"
   },
   {
     "id": 2,
@@ -21,7 +21,7 @@
     "rating": 10,
     "basePrice": "\u20b92,00,00,000",
     "status": "Available",
-    "image_file": null
+    "image_file": "hardik pandya.webp"
   },
   {
     "id": 3,
@@ -33,7 +33,7 @@
     "rating": 10,
     "basePrice": "\u20b92,00,00,000",
     "status": "Available",
-    "image_file": null
+    "image_file": "surya.png"
   },
   {
     "id": 4,
@@ -45,7 +45,7 @@
     "rating": 10,
     "basePrice": "\u20b92,00,00,000",
     "status": "Available",
-    "image_file": null
+    "image_file": "jasprit bumrah.png"
   },
   {
     "id": 5,
@@ -69,7 +69,7 @@
     "rating": 10,
     "basePrice": "\u20b92,00,00,000",
     "status": "Available",
-    "image_file": null
+    "image_file": "pat cummins.png"
   },
   {
     "id": 7,
@@ -81,7 +81,7 @@
     "rating": 10,
     "basePrice": "\u20b92,00,00,000",
     "status": "Available",
-    "image_file": null
+    "image_file": "rishabh pant.avif"
   },
   {
     "id": 8,
@@ -225,7 +225,7 @@
     "rating": 9,
     "basePrice": "\u20b91,50,00,000",
     "status": "Available",
-    "image_file": null
+    "image_file": "haed.avif"
   },
   {
     "id": 20,
@@ -237,7 +237,7 @@
     "rating": 9,
     "basePrice": "\u20b91,50,00,000",
     "status": "Available",
-    "image_file": null
+    "image_file": "klassen.avif"
   },
   {
     "id": 21,
@@ -333,7 +333,7 @@
     "rating": 9,
     "basePrice": "\u20b91,50,00,000",
     "status": "Available",
-    "image_file": null
+    "image_file": "jaiswal.avif"
   },
   {
     "id": 29,
@@ -513,7 +513,7 @@
     "rating": 8,
     "basePrice": "\u20b91,00,00,000",
     "status": "Available",
-    "image_file": null
+    "image_file": "abhishek sharma.avif"
   },
   {
     "id": 44,
@@ -525,7 +525,7 @@
     "rating": 8,
     "basePrice": "\u20b91,00,00,000",
     "status": "Available",
-    "image_file": null
+    "image_file": "ishan kishan.jpg"
   },
   {
     "id": 45,
@@ -621,7 +621,7 @@
     "rating": 8,
     "basePrice": "\u20b91,00,00,000",
     "status": "Available",
-    "image_file": null
+    "image_file": "ravi bishnoi.jpg"
   },
   {
     "id": 53,
@@ -645,7 +645,7 @@
     "rating": 8,
     "basePrice": "\u20b91,00,00,000",
     "status": "Available",
-    "image_file": null
+    "image_file": "hetmyer.avif"
   },
   {
     "id": 55,
@@ -1089,7 +1089,7 @@
     "rating": 7,
     "basePrice": "\u20b975,00,000",
     "status": "Available",
-    "image_file": null
+    "image_file": "harshal patel.avif"
   },
   {
     "id": 92,
@@ -1245,7 +1245,7 @@
     "rating": 7,
     "basePrice": "\u20b975,00,000",
     "status": "Available",
-    "image_file": null
+    "image_file": "riyan parag.avif"
   },
   {
     "id": 105,
@@ -1257,7 +1257,7 @@
     "rating": 7,
     "basePrice": "\u20b975,00,000",
     "status": "Available",
-    "image_file": null
+    "image_file": "jurel.avif"
   },
   {
     "id": 106,
@@ -1437,7 +1437,7 @@
     "rating": 6,
     "basePrice": "\u20b950,00,000",
     "status": "Available",
-    "image_file": null
+    "image_file": "rahul chahar.avif"
   },
   {
     "id": 121,
