@@ -55,7 +55,16 @@ export default function FilterBar({ filters, setFilters }) {
         </select>
       </div>
 
-      <button className="reset-btn" onClick={() => setFilters({ role: 'All', origin: 'All', rating: 'All', price: 'All' })}>
+      <div className="filter-group">
+        <label>Availability</label>
+        <select name="availability" value={filters.availability || 'All'} onChange={handleChange}>
+          <option value="All">All Players</option>
+          <option value="Available">Available Only</option>
+          <option value="Sold">Sold Only</option>
+        </select>
+      </div>
+
+      <button className="reset-btn" onClick={() => setFilters({ role: 'All', origin: 'All', rating: 'All', price: 'All', availability: 'All' })}>
         Reset Filters
       </button>
     </div>

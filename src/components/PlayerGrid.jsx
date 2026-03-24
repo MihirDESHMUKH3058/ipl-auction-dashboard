@@ -2,7 +2,7 @@ import React from 'react';
 import PlayerCard from './PlayerCard';
 import './PlayerGrid.css';
 
-export default function PlayerGrid({ players }) {
+export default function PlayerGrid({ players, auctionRecords = {} }) {
   if (players.length === 0) {
     return (
       <div className="no-results">
@@ -15,7 +15,7 @@ export default function PlayerGrid({ players }) {
   return (
     <div className="player-grid">
       {players.map(player => (
-        <PlayerCard key={player.id} player={player} />
+        <PlayerCard key={player.id} player={player} auctionRecord={auctionRecords[player.id]} />
       ))}
     </div>
   );

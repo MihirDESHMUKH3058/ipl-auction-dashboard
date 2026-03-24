@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import './PlayerCard.css';
 
-export default function PlayerCard({ player }) {
+export default function PlayerCard({ player, auctionRecord }) {
   const [imgError, setImgError] = useState(false);
 
   // Helper to determine team color variable
@@ -49,7 +49,7 @@ export default function PlayerCard({ player }) {
         </div>
       </div>
       
-      <div className="card-image-container">
+      <div className={`card-image-container ${auctionRecord ? 'sold-image' : ''}`}>
         {!imgError ? (
           <img 
             src={player.image_file ? `${import.meta.env.BASE_URL}players/${player.image_file}` : `${import.meta.env.BASE_URL}players/${player.id}.png`} 
@@ -64,6 +64,12 @@ export default function PlayerCard({ player }) {
             className="player-image"
           />
         )}
+        
+        {auctionRecord && (
+          <div className="sold-overlay">
+            <span className="sold-text">SOLD TO {auctionRecord.team}</span>
+          </div>
+        )}
       </div>
 
       <div className="card-body">
@@ -76,8 +82,17 @@ export default function PlayerCard({ player }) {
         </div>
 
         <div className="card-footer">
-          <div className="base-price-label">Base Price</div>
-          <div className="base-price-value">{player.basePrice}</div>
+          {auctionRecord ? (
+            <>
+              <div className="base-price-label">Final Price</div>
+              <div className="base-price-value final-price" style={{ color: `var(--${auctionRecord.team.toLowerCase()})` }}>{auctionRecord.finalPrice}</div>
+            </>
+          ) : (
+            <>
+              <div className="base-price-label">Base Price</div>
+              <div className="base-price-value">{player.basePrice}</div>
+            </>
+          )}
         </div>
       </div>
     </div>
