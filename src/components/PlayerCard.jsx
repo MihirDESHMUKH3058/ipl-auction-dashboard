@@ -22,6 +22,17 @@ export default function PlayerCard({ player }) {
     ));
   };
 
+  const getTeamHex = (teamCode) => {
+    const hexes = {
+      CSK: 'fdb913', MI: '004ba0', RCB: 'ea1a2a', KKR: '3a225d', 
+      DC: '174ebd', SRH: 'f26522', RR: 'ea1a85', PBKS: 'ed1b24', 
+      LSG: '2b1f82', GT: '1b2133'
+    };
+    return hexes[teamCode] || '00e5ff';
+  };
+
+  const fallbackUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(player.name)}&background=${getTeamHex(player.team)}&color=fff&size=250&font-size=0.33`;
+
   return (
     <div className="player-card" style={{ '--card-accent': teamColor }}>
       <div className="card-header">
@@ -42,11 +53,11 @@ export default function PlayerCard({ player }) {
             className="player-image"
           />
         ) : (
-          <div className="player-placeholder">
-            <svg viewBox="0 0 24 24" fill="currentColor">
-              <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
-            </svg>
-          </div>
+          <img 
+            src={fallbackUrl}
+            alt={player.name}
+            className="player-image"
+          />
         )}
       </div>
 
