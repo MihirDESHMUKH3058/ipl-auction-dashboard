@@ -35,10 +35,7 @@ export default function PlayerCard({ player, auctionRecord }) {
 
   return (
     <div className="player-card" style={{ '--card-accent': teamColor }}>
-      <div className="card-header">
-        <div className="team-badge" style={{ backgroundColor: teamColor }}>
-          {player.team}
-        </div>
+      <div className="card-header" style={{ justifyContent: 'flex-end' }}>
         <div className={`origin-badge ${player.overseas === 'Overseas' ? 'overseas' : 'indian'}`}>
           {player.overseas === 'Overseas' ? '✈️ OVS' : (
              <span style={{display: 'flex', alignItems: 'center', gap: '4px'}}>
