@@ -26,7 +26,7 @@ export default function TeamRosters({ players, auctionRecords }) {
       totalSpentLakhs += (parseInt(numStr, 10) / 100000);
     });
 
-    const totalPurseLakhs = 2000; // 20 Cr
+    const totalPurseLakhs = 12000; // 120 Cr
     const remainingPurseLakhs = totalPurseLakhs - totalSpentLakhs;
 
     return {
@@ -48,7 +48,7 @@ export default function TeamRosters({ players, auctionRecords }) {
               <h3>{team.name}</h3>
               <div className="team-stats">
                 <span className="stat-badge">{team.roster.length} Players</span>
-                <span className="stat-badge purse">Purse: 20 Cr</span>
+                <span className="stat-badge purse">Purse: 120 Cr</span>
                 <span className="stat-badge spent">Spent: {team.totalSpentLakhs >= 100 ? `${(team.totalSpentLakhs / 100).toFixed(2)} Cr` : `${team.totalSpentLakhs} L`}</span>
                 <span className="stat-badge remaining">Left: {team.remainingPurseLakhs >= 100 ? `${(team.remainingPurseLakhs / 100).toFixed(2)} Cr` : `${team.remainingPurseLakhs} L`}</span>
               </div>
