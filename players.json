@@ -9,7 +9,7 @@
     "rating": 10,
     "basePrice": "\u20b92,00,00,000",
     "status": "Available",
-    "image_file": "rohit sharma.avif"
+    "image_file": "official_6.png"
   },
   {
     "id": 2,
@@ -21,7 +21,7 @@
     "rating": 10,
     "basePrice": "\u20b92,00,00,000",
     "status": "Available",
-    "image_file": "hardik pandya.webp"
+    "image_file": "official_54.png"
   },
   {
     "id": 3,
@@ -33,7 +33,7 @@
     "rating": 10,
     "basePrice": "\u20b92,00,00,000",
     "status": "Available",
-    "image_file": "surya.png"
+    "image_file": "official_174.png"
   },
   {
     "id": 4,
@@ -45,7 +45,7 @@
     "rating": 10,
     "basePrice": "\u20b92,00,00,000",
     "status": "Available",
-    "image_file": "jasprit bumrah.png"
+    "image_file": "official_9.png"
   },
   {
     "id": 5,
@@ -69,7 +69,7 @@
     "rating": 10,
     "basePrice": "\u20b92,00,00,000",
     "status": "Available",
-    "image_file": "pat cummins.png"
+    "image_file": "official_33.png"
   },
   {
     "id": 7,
@@ -81,7 +81,7 @@
     "rating": 10,
     "basePrice": "\u20b92,00,00,000",
     "status": "Available",
-    "image_file": "rishabh pant.avif"
+    "image_file": "official_18.png"
   },
   {
     "id": 8,
@@ -225,7 +225,7 @@
     "rating": 9,
     "basePrice": "\u20b91,50,00,000",
     "status": "Available",
-    "image_file": "haed.avif"
+    "image_file": "official_37.png"
   },
   {
     "id": 20,
@@ -237,7 +237,7 @@
     "rating": 9,
     "basePrice": "\u20b91,50,00,000",
     "status": "Available",
-    "image_file": "klassen.avif"
+    "image_file": "official_202.png"
   },
   {
     "id": 21,
@@ -297,7 +297,7 @@
     "rating": 9,
     "basePrice": "\u20b91,50,00,000",
     "status": "Available",
-    "image_file": "official_985.png"
+    "image_file": "official_94.png"
   },
   {
     "id": 26,
@@ -333,7 +333,7 @@
     "rating": 9,
     "basePrice": "\u20b91,50,00,000",
     "status": "Available",
-    "image_file": "jaiswal.avif"
+    "image_file": "official_533.png"
   },
   {
     "id": 29,
@@ -513,7 +513,7 @@
     "rating": 8,
     "basePrice": "\u20b91,00,00,000",
     "status": "Available",
-    "image_file": "abhishek sharma.avif"
+    "image_file": "official_212.png"
   },
   {
     "id": 44,
@@ -525,7 +525,7 @@
     "rating": 8,
     "basePrice": "\u20b91,00,00,000",
     "status": "Available",
-    "image_file": "ishan kishan.jpg"
+    "image_file": "official_164.png"
   },
   {
     "id": 45,
@@ -621,7 +621,7 @@
     "rating": 8,
     "basePrice": "\u20b91,00,00,000",
     "status": "Available",
-    "image_file": "ravi bishnoi.jpg"
+    "image_file": "official_520.png"
   },
   {
     "id": 53,
@@ -645,7 +645,7 @@
     "rating": 8,
     "basePrice": "\u20b91,00,00,000",
     "status": "Available",
-    "image_file": "hetmyer.avif"
+    "image_file": "official_210.png"
   },
   {
     "id": 55,
@@ -741,7 +741,7 @@
     "rating": 7,
     "basePrice": "\u20b975,00,000",
     "status": "Available",
-    "image_file": "62.png"
+    "image_file": "official_1564.png"
   },
   {
     "id": 63,
@@ -837,7 +837,7 @@
     "rating": 7,
     "basePrice": "\u20b975,00,000",
     "status": "Available",
-    "image_file": "70.png"
+    "image_file": "official_140.png"
   },
   {
     "id": 71,
@@ -1089,7 +1089,7 @@
     "rating": 7,
     "basePrice": "\u20b975,00,000",
     "status": "Available",
-    "image_file": "harshal patel.avif"
+    "image_file": "official_114.png"
   },
   {
     "id": 92,
@@ -1245,7 +1245,7 @@
     "rating": 7,
     "basePrice": "\u20b975,00,000",
     "status": "Available",
-    "image_file": "riyan parag.avif"
+    "image_file": "official_189.png"
   },
   {
     "id": 105,
@@ -1257,7 +1257,7 @@
     "rating": 7,
     "basePrice": "\u20b975,00,000",
     "status": "Available",
-    "image_file": "jurel.avif"
+    "image_file": "official_1004.png"
   },
   {
     "id": 106,
@@ -1437,7 +1437,7 @@
     "rating": 6,
     "basePrice": "\u20b950,00,000",
     "status": "Available",
-    "image_file": "rahul chahar.avif"
+    "image_file": "official_171.png"
   },
   {
     "id": 121,
