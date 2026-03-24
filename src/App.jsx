@@ -3,6 +3,7 @@ import Header from './components/Header';
 import FilterBar from './components/FilterBar';
 import PlayerGrid from './components/PlayerGrid';
 import AuctionAdminPanel from './components/AuctionAdminPanel';
+import TeamRosters from './components/TeamRosters';
 import './App.css';
 
 function App() {
@@ -78,11 +79,16 @@ function App() {
               <PlayerGrid players={filteredPlayers} auctionRecords={auctionRecords} />
             </section>
           </>
-        ) : (
+        ) : activeTab === 'admin' ? (
           <AuctionAdminPanel 
             players={players} 
             auctionRecords={auctionRecords} 
             setAuctionRecords={setAuctionRecords} 
+          />
+        ) : (
+          <TeamRosters 
+            players={players} 
+            auctionRecords={auctionRecords} 
           />
         )}
       </main>

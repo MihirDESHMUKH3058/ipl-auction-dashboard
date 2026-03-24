@@ -22,6 +22,12 @@ export default function Header({ activeTab, setActiveTab }) {
           >
             Auction Admin
           </button>
+          <button 
+            className={`nav-tab ${activeTab === 'rosters' ? 'active' : ''}`}
+            onClick={() => setActiveTab('rosters')}
+          >
+            Team Rosters
+          </button>
         </div>
       </div>
       
