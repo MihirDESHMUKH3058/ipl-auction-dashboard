@@ -40,7 +40,12 @@ export default function PlayerCard({ player }) {
           {player.team}
         </div>
         <div className={`origin-badge ${player.overseas === 'Overseas' ? 'overseas' : 'indian'}`}>
-          {player.overseas === 'Overseas' ? '✈️ OVS' : '🇮🇳 IND'}
+          {player.overseas === 'Overseas' ? '✈️ OVS' : (
+             <span style={{display: 'flex', alignItems: 'center', gap: '4px'}}>
+               <img src={`${import.meta.env.BASE_URL}india_flag.png`} alt="India" style={{width: '14px', height: 'auto', borderRadius: '2px'}} />
+               INDIA
+             </span>
+          )}
         </div>
       </div>
       
