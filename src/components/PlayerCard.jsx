@@ -36,7 +36,7 @@ export default function PlayerCard({ player }) {
       <div className="card-image-container">
         {!imgError ? (
           <img 
-            src={`/players/${player.id}.png`} 
+            src={`${import.meta.env.BASE_URL}players/${player.id}.png`} 
             alt={player.name}
             onError={() => setImgError(true)}
             className="player-image"

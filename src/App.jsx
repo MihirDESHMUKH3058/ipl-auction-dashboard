@@ -14,7 +14,7 @@ function App() {
   });
 
   useEffect(() => {
-    fetch('/players.json')
+    fetch(`${import.meta.env.BASE_URL}players.json`)
       .then(res => res.json())
       .then(data => setPlayers(data))
       .catch(err => console.error("Failed to load players data", err));
