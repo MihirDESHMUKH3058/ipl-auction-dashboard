@@ -9,6 +9,11 @@ import './App.css';
 function App() {
   const [players, setPlayers] = useState([]);
   const [activeTab, setActiveTab] = useState('catalog');
+  const [isAdmin, setIsAdmin] = useState(() => localStorage.getItem('isAdmin') === 'true');
+
+  useEffect(() => {
+    localStorage.setItem('isAdmin', isAdmin);
+  }, [isAdmin]);
   
   // Load initial state from localStorage if available
   const [auctionRecords, setAuctionRecords] = useState(() => {
@@ -67,7 +72,12 @@ function App() {
 
   return (
     <div className="app-container">
-      <Header activeTab={activeTab} setActiveTab={setActiveTab} />
+      <Header 
+        activeTab={activeTab} 
+        setActiveTab={setActiveTab} 
+        isAdmin={isAdmin}
+        setIsAdmin={setIsAdmin}
+      />
       
       <main className="main-content">
         {activeTab === 'catalog' ? (
@@ -80,11 +90,18 @@ function App() {
             </section>
           </>
         ) : activeTab === 'admin' ? (
-          <AuctionAdminPanel 
-            players={players} 
-            auctionRecords={auctionRecords} 
-            setAuctionRecords={setAuctionRecords} 
-          />
+          isAdmin ? (
+            <AuctionAdminPanel 
+              players={players} 
+              auctionRecords={auctionRecords} 
+              setAuctionRecords={setAuctionRecords} 
+            />
+          ) : (
+            <div className="auth-required" style={{padding: '3rem', textAlign: 'center', color: '#fff', fontSize: '1.2rem'}}>
+              <h2>Admin Access Required</h2>
+              <p>Please enter the correct passcode in the navigation tab to unlock.</p>
+            </div>
+          )
         ) : (
           <TeamRosters 
             players={players} 

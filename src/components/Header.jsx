@@ -1,6 +1,6 @@
 import React from 'react';
 
-export default function Header({ activeTab, setActiveTab }) {
+export default function Header({ activeTab, setActiveTab, isAdmin, setIsAdmin }) {
   return (
     <header className="app-header">
       <div className="header-left">
@@ -18,9 +18,21 @@ export default function Header({ activeTab, setActiveTab }) {
           </button>
           <button 
             className={`nav-tab ${activeTab === 'admin' ? 'active' : ''}`}
-            onClick={() => setActiveTab('admin')}
+            onClick={() => {
+              if (isAdmin) {
+                setActiveTab('admin');
+              } else {
+                const passcode = window.prompt("Enter Admin Passcode:");
+                if (passcode === "admin123") {
+                  setIsAdmin(true);
+                  setActiveTab('admin');
+                } else if (passcode !== null && passcode !== "") {
+                  alert("Incorrect passcode. Access denied.");
+                }
+              }
+            }}
           >
-            Auction Admin
+            {isAdmin ? "Auction Admin" : "Auction Admin 🔒"}
           </button>
           <button 
             className={`nav-tab ${activeTab === 'rosters' ? 'active' : ''}`}
