@@ -9,11 +9,7 @@ import './App.css';
 function App() {
   const [players, setPlayers] = useState([]);
   const [activeTab, setActiveTab] = useState('catalog');
-  const [isAdmin, setIsAdmin] = useState(() => localStorage.getItem('isAdmin') === 'true');
-
-  useEffect(() => {
-    localStorage.setItem('isAdmin', isAdmin);
-  }, [isAdmin]);
+  const [isAdmin, setIsAdmin] = useState(false);
   
   // Load initial state from localStorage if available
   const [auctionRecords, setAuctionRecords] = useState(() => {
