@@ -8,7 +8,8 @@
     "overseas": "Indian",
     "rating": 10,
     "basePrice": "\u20b92,00,00,000",
-    "status": "Available"
+    "status": "Available",
+    "image_file": "rohit sharma.avif"
   },
   {
     "id": 2,
@@ -19,7 +20,8 @@
     "overseas": "Indian",
     "rating": 10,
     "basePrice": "\u20b92,00,00,000",
-    "status": "Available"
+    "status": "Available",
+    "image_file": "hardik pandya.webp"
   },
   {
     "id": 3,
@@ -74,7 +76,8 @@
     "overseas": "Indian",
     "rating": 10,
     "basePrice": "\u20b92,00,00,000",
-    "status": "Available"
+    "status": "Available",
+    "image_file": "rishabh pant.avif"
   },
   {
     "id": 8,
