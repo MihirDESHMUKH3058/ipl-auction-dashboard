@@ -21,7 +21,7 @@ export default defineConfig({
               try {
                 const { records, players } = JSON.parse(body);
                 console.log(`[Sync] Received ${Object.keys(records).length} auction records for sync.`);
-                
+
                 const data = Object.entries(records).map(([id, record]) => {
                   const p = players.find(p => p.id.toString() === id);
                   return {
@@ -35,12 +35,12 @@ export default defineConfig({
                 const wb = XLSX.utils.book_new();
                 const ws = XLSX.utils.json_to_sheet(data);
                 XLSX.utils.book_append_sheet(wb, ws, "Auction Results");
-                
+
                 // Write to the root project folder
                 const filePath = path.resolve(server.config.root, '..', 'auction_results.xlsx');
                 XLSX.writeFile(wb, filePath);
                 console.log(`[Sync] Successfully updated Excel file at: ${filePath}`);
-                
+
                 res.statusCode = 200;
                 res.end(JSON.stringify({ success: true, path: filePath }));
               } catch (err) {
@@ -62,5 +62,5 @@ export default defineConfig({
       }
     }
   ],
-  base: '/ipl-auction-dashboard/',
+  base: (process.env.NODE_ENV === 'production' && !process.env.VERCEL) ? '/ipl-auction-dashboard/' : '/',
 })
