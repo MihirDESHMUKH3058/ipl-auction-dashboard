@@ -39,7 +39,16 @@ function App() {
   // Save to localStorage whenever auctionRecords change
   useEffect(() => {
     localStorage.setItem('auctionState', JSON.stringify(auctionRecords));
-  }, [auctionRecords]);
+    
+    // Also sync to local Excel file (only works on local dev server)
+    if (players.length > 0) {
+      fetch(`${import.meta.env.BASE_URL}api/sync-auction`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ records: auctionRecords, players })
+      }).catch(err => console.debug("Local Excel sync skipped (likely running on GitHub Pages)"));
+    }
+  }, [auctionRecords, players]);
 
   const parsePriceToLakhs = (priceStr) => {
     if (!priceStr) return 0;
