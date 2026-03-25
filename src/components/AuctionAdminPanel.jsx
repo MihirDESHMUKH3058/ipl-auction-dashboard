@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import * as XLSX from 'xlsx';
 import './AuctionAdminPanel.css';
 
 export default function AuctionAdminPanel({ players, auctionRecords, setAuctionRecords }) {
@@ -38,6 +39,28 @@ export default function AuctionAdminPanel({ players, auctionRecords, setAuctionR
     const newRecords = { ...auctionRecords };
     delete newRecords[id];
     setAuctionRecords(newRecords);
+  };
+
+  const handleExport = () => {
+    if (Object.keys(auctionRecords).length === 0) {
+      alert("No players sold yet to export!");
+      return;
+    }
+
+    const data = Object.entries(auctionRecords).map(([id, record]) => {
+      const p = players.find(p => p.id.toString() === id);
+      return {
+        "Player Name": p?.name || 'Unknown',
+        "Team": record.team,
+        "Sold Price": record.finalPrice,
+        "Rating": p?.rating || 0
+      };
+    });
+
+    const wb = XLSX.utils.book_new();
+    const ws = XLSX.utils.json_to_sheet(data);
+    XLSX.utils.book_append_sheet(wb, ws, "Auction Results");
+    XLSX.writeFile(wb, "ipl_auction_results_manual.xlsx");
   };
 
   return (
@@ -107,7 +130,17 @@ export default function AuctionAdminPanel({ players, auctionRecords, setAuctionR
       </div>
 
       <div className="admin-history-card">
-        <h2 className="admin-title">Recent Sales History</h2>
+        <div className="history-header">
+          <h2 className="admin-title">Recent Sales History</h2>
+          <button 
+            type="button" 
+            className="export-btn" 
+            onClick={handleExport}
+            title="Download Excel matching current state"
+          >
+            📥 Export to Excel
+          </button>
+        </div>
         <div className="history-list">
           {Object.entries(auctionRecords).length === 0 ? (
             <p className="empty-state">No players sold yet.</p>

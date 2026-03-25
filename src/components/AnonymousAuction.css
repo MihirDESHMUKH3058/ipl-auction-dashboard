@@ -1,0 +1,252 @@
+.anonymous-auction-container {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  padding: 1rem;
+  color: #fff;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.anonymous-header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.anonymous-title {
+  font-size: 2.5rem;
+  color: var(--neon-blue);
+  text-shadow: 0 0 10px rgba(0, 229, 255, 0.5);
+  margin-bottom: 0.5rem;
+}
+
+.anonymous-subtitle {
+  color: #a0aec0;
+  font-size: 1.1rem;
+}
+
+.auction-layout {
+  display: grid;
+  grid-template-columns: 1fr 1.5fr;
+  gap: 2rem;
+}
+
+@media (max-width: 900px) {
+  .auction-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+.player-selection-card {
+  background: rgba(26, 32, 44, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  padding: 1.5rem;
+  backdrop-filter: blur(10px);
+}
+
+.player-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.player-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.75rem;
+  border-radius: 8px;
+  background: rgba(45, 55, 72, 0.5);
+  cursor: pointer;
+  transition: all 0.2s;
+  border: 1px solid transparent;
+}
+
+.player-item:hover {
+  background: rgba(74, 85, 104, 0.5);
+  transform: translateX(5px);
+}
+
+.player-item.active {
+  background: rgba(0, 229, 255, 0.1);
+  border-color: var(--neon-blue);
+  box-shadow: 0 0 15px rgba(0, 229, 255, 0.2);
+}
+
+.player-item.sold {
+  opacity: 0.6;
+  cursor: not-allowed;
+  background: rgba(20, 26, 35, 0.8);
+}
+
+.player-thumb {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid rgba(255, 255, 255, 0.1);
+}
+
+.player-info h4 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.player-info p {
+  margin: 0;
+  font-size: 0.8rem;
+  color: #a0aec0;
+}
+
+.bidding-console {
+  background: rgba(26, 32, 44, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  padding: 2rem;
+  backdrop-filter: blur(10px);
+}
+
+.bidding-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.5rem;
+  margin: 2rem 0;
+}
+
+@media (max-width: 600px) {
+  .bidding-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.team-bid-input {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.team-label {
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.team-badge {
+  width: 12px;
+  height: 12px;
+  border-radius: 2px;
+}
+
+.bid-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.bid-input-wrapper input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  padding-left: 2rem;
+  background: rgba(15, 22, 33, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  color: #fff;
+  font-family: inherit;
+  transition: border-color 0.2s;
+}
+
+.bid-input-wrapper input:focus {
+  outline: none;
+  border-color: var(--neon-blue);
+}
+
+.bid-input-wrapper .currency {
+  position: absolute;
+  left: 0.75rem;
+  color: #718096;
+}
+
+.actions-row {
+  display: flex;
+  gap: 1rem;
+  margin-top: 2rem;
+}
+
+.action-btn {
+  padding: 1rem 2rem;
+  border-radius: 8px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: none;
+  flex: 1;
+}
+
+.reveal-btn {
+  background: var(--neon-blue);
+  color: #000;
+}
+
+.reveal-btn:hover {
+  background: #00b8cc;
+  box-shadow: 0 0 20px rgba(0, 229, 255, 0.4);
+}
+
+.sell-btn-anon {
+  background: #48bb78;
+  color: #fff;
+}
+
+.sell-btn-anon:hover {
+  background: #38a169;
+  box-shadow: 0 0 20px rgba(72, 187, 120, 0.4);
+}
+
+.reset-btn-anon {
+  background: rgba(229, 62, 62, 0.1);
+  color: #fc8181;
+  border: 1px solid rgba(229, 62, 62, 0.2);
+}
+
+.reset-btn-anon:hover {
+  background: rgba(229, 62, 62, 0.2);
+}
+
+.winner-announce {
+  margin-top: 2rem;
+  padding: 1.5rem;
+  background: rgba(0, 229, 255, 0.1);
+  border: 2px dashed var(--neon-blue);
+  border-radius: 12px;
+  text-align: center;
+  animation: glow 2s infinite alternate;
+}
+
+@keyframes glow {
+  from { box-shadow: 0 0 5px rgba(0, 229, 255, 0.2); }
+  to { box-shadow: 0 0 20px rgba(0, 229, 255, 0.4); }
+}
+
+.winner-announce h3 {
+  margin: 0;
+  color: var(--neon-blue);
+  font-size: 1.5rem;
+}
+
+.winner-announce p {
+  margin: 0.5rem 0 0 0;
+  font-size: 1.2rem;
+  font-weight: 700;
+}
+
+.no-selection {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 400px;
+  color: #718096;
+  font-style: italic;
+}

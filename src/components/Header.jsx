@@ -35,6 +35,12 @@ export default function Header({ activeTab, setActiveTab, isAdmin, setIsAdmin })
             {isAdmin ? "Auction Admin" : "Auction Admin 🔒"}
           </button>
           <button 
+            className={`nav-tab ${activeTab === 'anonymous' ? 'active' : ''}`}
+            onClick={() => setActiveTab('anonymous')}
+          >
+            Anonymous Auction
+          </button>
+          <button 
             className={`nav-tab ${activeTab === 'bags' ? 'active' : ''}`}
             onClick={() => setActiveTab('bags')}
           >

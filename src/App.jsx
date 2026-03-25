@@ -3,6 +3,7 @@ import Header from './components/Header';
 import FilterBar from './components/FilterBar';
 import PlayerGrid from './components/PlayerGrid';
 import AuctionAdminPanel from './components/AuctionAdminPanel';
+import AnonymousAuction from './components/AnonymousAuction';
 import TeamRosters from './components/TeamRosters';
 import PlayerBags from './components/PlayerBags';
 import './App.css';
@@ -39,14 +40,31 @@ function App() {
   // Save to localStorage whenever auctionRecords change
   useEffect(() => {
     localStorage.setItem('auctionState', JSON.stringify(auctionRecords));
-    
-    // Also sync to local Excel file (only works on local dev server)
-    if (players.length > 0) {
-      fetch(`${import.meta.env.BASE_URL}api/sync-auction`, {
+  }, [auctionRecords]);
+
+  // Also sync to local Excel file (only works on local dev server)
+  useEffect(() => {
+    if (players.length > 0 && Object.keys(auctionRecords).length > 0) {
+      const syncUrl = `${import.meta.env.BASE_URL}api/sync-auction`.replace(/\/+/g, '/');
+      fetch(syncUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ records: auctionRecords, players })
-      }).catch(err => console.debug("Local Excel sync skipped (likely running on GitHub Pages)"));
+      })
+      .then(res => {
+        if(res.ok) {
+          console.log("%c[Success] Auction results synced to local Excel file", "color: #00ff00");
+        } else if (res.status === 409) {
+          alert("⚠️ ERROR: Cannot update Excel file because it is OPEN in Microsoft Excel.\n\nPlease CLOSE 'auction_results.xlsx' and then click 'Undo' followed by 'Mark as Sold' again to retry.");
+        }
+      })
+      .catch(err => {
+        if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+          console.error("[Error] Local Excel sync failed even on localhost. Check if dev server is running.", err);
+        } else {
+          console.debug("[Info] Excel sync is disabled on the public GitHub link.");
+        }
+      });
     }
   }, [auctionRecords, players]);
 
@@ -58,6 +76,9 @@ function App() {
 
   const filteredPlayers = useMemo(() => {
     return players.filter(p => {
+      // Exclude anonymous players from the general catalog
+      if (p.isAnonymous) return false;
+      
       if (filters.role !== 'All' && p.role !== filters.role) return false;
       if (filters.origin !== 'All' && p.overseas !== filters.origin) return false;
       if (filters.rating !== 'All' && p.rating < parseInt(filters.rating, 10)) return false;
@@ -108,6 +129,12 @@ function App() {
               <p>Please enter the correct passcode in the navigation tab to unlock.</p>
             </div>
           )
+        ) : activeTab === 'anonymous' ? (
+          <AnonymousAuction 
+            players={players} 
+            auctionRecords={auctionRecords} 
+            setAuctionRecords={setAuctionRecords} 
+          />
         ) : activeTab === 'bags' ? (
           <PlayerBags 
             players={players} 

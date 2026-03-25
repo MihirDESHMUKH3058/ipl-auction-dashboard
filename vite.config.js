@@ -20,6 +20,8 @@ export default defineConfig({
             req.on('end', () => {
               try {
                 const { records, players } = JSON.parse(body);
+                console.log(`[Sync] Received ${Object.keys(records).length} auction records for sync.`);
+                
                 const data = Object.entries(records).map(([id, record]) => {
                   const p = players.find(p => p.id.toString() === id);
                   return {
@@ -37,12 +39,20 @@ export default defineConfig({
                 // Write to the root project folder
                 const filePath = path.resolve(server.config.root, '..', 'auction_results.xlsx');
                 XLSX.writeFile(wb, filePath);
+                console.log(`[Sync] Successfully updated Excel file at: ${filePath}`);
                 
                 res.statusCode = 200;
                 res.end(JSON.stringify({ success: true, path: filePath }));
               } catch (err) {
-                res.statusCode = 500;
-                res.end(JSON.stringify({ error: err.message }));
+                if (err.code === 'EBUSY') {
+                  console.error(`[Sync Error] Cannot update Excel file because it is OPEN in another program. Please CLOSE 'auction_results.xlsx' and try again.`);
+                  res.statusCode = 409; // Conflict
+                  res.end(JSON.stringify({ error: "FILE_LOCKED", message: "Excel file is open in another program. Please close it and try again." }));
+                } else {
+                  console.error(`[Sync Error] ${err.message}`);
+                  res.statusCode = 500;
+                  res.end(JSON.stringify({ error: err.message }));
+                }
               }
             });
           } else {
