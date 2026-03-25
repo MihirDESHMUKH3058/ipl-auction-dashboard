@@ -31,8 +31,9 @@
     "role": "Batsman",
     "overseas": "Indian",
     "rating": 10,
-    "basePrice": "\u20b92,00,00,000",
+    "basePrice": "₹5,00,00,000",
     "status": "Available",
+    "isAnonymous": true,
     "image_file": "official_174.png"
   },
   {
@@ -79,8 +80,9 @@
     "role": "Wicket-Keeper",
     "overseas": "Indian",
     "rating": 10,
-    "basePrice": "\u20b92,00,00,000",
+    "basePrice": "₹5,00,00,000",
     "status": "Available",
+    "isAnonymous": true,
     "image_file": "official_18.png"
   },
   {
@@ -91,8 +93,9 @@
     "role": "All-Rounder",
     "overseas": "Indian",
     "rating": 10,
-    "basePrice": "\u20b92,00,00,000",
+    "basePrice": "₹5,00,00,000",
     "status": "Available",
+    "isAnonymous": true,
     "image_file": "official_46.png"
   },
   {
@@ -259,8 +262,9 @@
     "role": "Wicket-Keeper",
     "overseas": "Indian",
     "rating": 9,
-    "basePrice": "\u20b91,50,00,000",
+    "basePrice": "₹5,00,00,000",
     "status": "Available",
+    "isAnonymous": true,
     "image_file": "official_19.png"
   },
   {
@@ -355,8 +359,9 @@
     "role": "Batsman",
     "overseas": "Indian",
     "rating": 9,
-    "basePrice": "\u20b91,50,00,000",
+    "basePrice": "₹5,00,00,000",
     "status": "Available",
+    "isAnonymous": true,
     "image_file": "official_62.png"
   },
   {
@@ -403,8 +408,9 @@
     "role": "Wicket-Keeper",
     "overseas": "Indian",
     "rating": 8,
-    "basePrice": "\u20b91,00,00,000",
+    "basePrice": "₹5,00,00,000",
     "status": "Available",
+    "isAnonymous": true,
     "image_file": "official_190.png"
   },
   {
@@ -1015,8 +1021,9 @@
     "role": "Batsman",
     "overseas": "Indian",
     "rating": 7,
-    "basePrice": "\u20b975,00,000",
+    "basePrice": "₹5,00,00,000",
     "status": "Available",
+    "isAnonymous": true,
     "image_file": "official_44.png"
   },
   {
