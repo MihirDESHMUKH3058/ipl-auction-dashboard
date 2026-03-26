@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { supabase } from '../supabaseClient';
 import './AnonymousAuction.css';
 
 export default function AnonymousAuction({ players, auctionRecords, setAuctionRecords }) {
@@ -37,18 +38,31 @@ export default function AnonymousAuction({ players, auctionRecords, setAuctionRe
     setBids(prev => ({ ...prev, [team]: value }));
   };
 
-  const handleSell = () => {
+  const handleSell = async () => {
     if (!winner || !selectedPlayer) return;
+
+    const priceString = `₹${winner.amount},00,000`;
 
     const newRecords = {
       ...auctionRecords,
       [selectedPlayer.id]: {
         team: winner.team,
-        finalPrice: `₹${winner.amount},00,000`
+        finalPrice: priceString
       }
     };
     
     setAuctionRecords(newRecords);
+
+    // Supabase Sync
+    if (import.meta.env.VITE_SUPABASE_URL && import.meta.env.VITE_SUPABASE_URL !== 'YOUR_SUPABASE_URL_HERE') {
+      const { error } = await supabase.from('auction_records').upsert({
+        player_id: selectedPlayer.id.toString(),
+        team: winner.team,
+        finalPrice: priceString
+      });
+      if (error) console.error("Supabase insert error:", error);
+    }
+
     // Reset state for next player
     setSelectedPlayerId(null);
     setBids(teams.reduce((acc, team) => ({ ...acc, [team]: '' }), {}));

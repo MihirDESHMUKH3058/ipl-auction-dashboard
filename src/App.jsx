@@ -6,6 +6,7 @@ import AuctionAdminPanel from './components/AuctionAdminPanel';
 import AnonymousAuction from './components/AnonymousAuction';
 import TeamRosters from './components/TeamRosters';
 import PlayerBags from './components/PlayerBags';
+import { supabase } from './supabaseClient';
 import './App.css';
 
 function App() {
@@ -37,10 +38,64 @@ function App() {
       .catch(err => console.error("Failed to load players data", err));
   }, []);
 
-  // Save to localStorage whenever auctionRecords change
+  // Save to localStorage whenever auctionRecords change (Fallback)
   useEffect(() => {
     localStorage.setItem('auctionState', JSON.stringify(auctionRecords));
   }, [auctionRecords]);
+
+  // Supabase: Fetch initial data and subscribe to Real-Time updates
+  useEffect(() => {
+    let channel;
+    const isSupabaseConfigured = import.meta.env.VITE_SUPABASE_URL && import.meta.env.VITE_SUPABASE_URL !== 'YOUR_SUPABASE_URL_HERE';
+
+    const setupSupabase = async () => {
+      if (!isSupabaseConfigured) {
+        console.warn("Supabase not configured. Falling back to LocalStorage.");
+        return;
+      }
+
+      // 1. Fetch existing records
+      const { data, error } = await supabase.from('auction_records').select('*');
+      if (error) {
+        console.error('Error fetching Supabase records:', error);
+      } else if (data) {
+        const recordsMap = {};
+        data.forEach(row => {
+          recordsMap[row.player_id] = { team: row.team, finalPrice: row.finalPrice };
+        });
+        // Override local storage with truth from DB
+        setAuctionRecords(prev => ({ ...prev, ...recordsMap }));
+      }
+
+      // 2. Subscribe to Real-Time Updates
+      channel = supabase
+        .channel('public:auction_records')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'auction_records' }, (payload) => {
+          console.log('Realtime change received!', payload);
+          if (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE') {
+            const row = payload.new;
+            setAuctionRecords(prev => ({
+              ...prev,
+              [row.player_id]: { team: row.team, finalPrice: row.finalPrice }
+            }));
+          } else if (payload.eventType === 'DELETE') {
+            const row = payload.old;
+            setAuctionRecords(prev => {
+              const newRecords = { ...prev };
+              delete newRecords[row.player_id];
+              return newRecords;
+            });
+          }
+        })
+        .subscribe();
+    };
+
+    setupSupabase();
+
+    return () => {
+      if (channel) supabase.removeChannel(channel);
+    };
+  }, []);
 
   // Also sync to local Excel file (only works on local dev server)
   useEffect(() => {

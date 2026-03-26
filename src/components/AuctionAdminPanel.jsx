@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import * as XLSX from 'xlsx';
+import { supabase } from '../supabaseClient';
 import './AuctionAdminPanel.css';
 
 export default function AuctionAdminPanel({ players, auctionRecords, setAuctionRecords }) {
@@ -14,19 +15,31 @@ export default function AuctionAdminPanel({ players, auctionRecords, setAuctionR
     return players.filter(p => !auctionRecords[p.id] && p.name.toLowerCase().includes(searchTerm.toLowerCase()));
   }, [players, auctionRecords, searchTerm]);
 
-  const handleSell = (e) => {
+  const handleSell = async (e) => {
     e.preventDefault();
     if (!selectedPlayerId || !selectedTeam || !finalPrice) return;
 
+    const priceString = `₹${finalPrice},00,000`; // Storing as string matching Base Price format for easy display
+
+    // Optimistic Update
     const newRecords = {
       ...auctionRecords,
       [selectedPlayerId]: {
         team: selectedTeam,
-        finalPrice: `₹${finalPrice},00,000` // Storing as string matching Base Price format for easy display
+        finalPrice: priceString
       }
     };
-    
     setAuctionRecords(newRecords);
+
+    // Supabase Sync
+    if (import.meta.env.VITE_SUPABASE_URL && import.meta.env.VITE_SUPABASE_URL !== 'YOUR_SUPABASE_URL_HERE') {
+      const { error } = await supabase.from('auction_records').upsert({
+        player_id: selectedPlayerId.toString(),
+        team: selectedTeam,
+        finalPrice: priceString
+      });
+      if (error) console.error("Supabase insert error:", error);
+    }
     
     // Clear form
     setSelectedPlayerId('');
@@ -35,10 +48,17 @@ export default function AuctionAdminPanel({ players, auctionRecords, setAuctionR
     setSearchTerm('');
   };
 
-  const handleResetPlayer = (id) => {
+  const handleResetPlayer = async (id) => {
+    // Optimistic Update
     const newRecords = { ...auctionRecords };
     delete newRecords[id];
     setAuctionRecords(newRecords);
+
+    // Supabase Sync
+    if (import.meta.env.VITE_SUPABASE_URL && import.meta.env.VITE_SUPABASE_URL !== 'YOUR_SUPABASE_URL_HERE') {
+      const { error } = await supabase.from('auction_records').delete().eq('player_id', id.toString());
+      if (error) console.error("Supabase delete error:", error);
+    }
   };
 
   const handleExport = () => {
