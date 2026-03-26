@@ -1,6 +1,29 @@
-import React from 'react';
+import React, { useState } from 'react';
 
 export default function Header({ activeTab, setActiveTab, isAdmin, setIsAdmin }) {
+  const [showModal, setShowModal] = useState(false);
+  const [passcode, setPasscode] = useState('');
+
+  const handleAdminClick = () => {
+    if (isAdmin) {
+      setActiveTab('admin');
+    } else {
+      setShowModal(true);
+    }
+  };
+
+  const handleLogin = (e) => {
+    e.preventDefault();
+    if (passcode === 'admin123') {
+      setIsAdmin(true);
+      setActiveTab('admin');
+      setShowModal(false);
+      setPasscode('');
+    } else {
+      alert("Incorrect passcode. Access denied.");
+    }
+  };
+
   return (
     <header className="app-header">
       <div className="header-left">
@@ -18,19 +41,7 @@ export default function Header({ activeTab, setActiveTab, isAdmin, setIsAdmin })
           </button>
           <button 
             className={`nav-tab ${activeTab === 'admin' ? 'active' : ''}`}
-            onClick={() => {
-              if (isAdmin) {
-                setActiveTab('admin');
-              } else {
-                const passcode = window.prompt("Enter Admin Passcode:");
-                if (passcode === "admin123") {
-                  setIsAdmin(true);
-                  setActiveTab('admin');
-                } else if (passcode !== null && passcode !== "") {
-                  alert("Incorrect passcode. Access denied.");
-                }
-              }
-            }}
+            onClick={handleAdminClick}
           >
             {isAdmin ? "Auction Admin" : "Auction Admin 🔒"}
           </button>
@@ -72,6 +83,30 @@ export default function Header({ activeTab, setActiveTab, isAdmin, setIsAdmin })
           </div>
         </div>
       </div>
+
+      {showModal && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <h2 className="modal-title">Admin Access</h2>
+            <p style={{marginBottom: '1rem', color: 'var(--text-secondary)'}}>Enter the passcode to unlock auction controls.</p>
+            <form onSubmit={handleLogin}>
+              <input 
+                id="admin-passcode-input"
+                type="password" 
+                className="modal-input" 
+                placeholder="Passcode"
+                value={passcode}
+                onChange={(e) => setPasscode(e.target.value)}
+                autoFocus
+              />
+              <div className="modal-actions">
+                <button type="button" className="modal-btn secondary" onClick={() => setShowModal(false)}>Cancel</button>
+                <button type="submit" className="modal-btn primary">Unlock</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </header>
   );
 }

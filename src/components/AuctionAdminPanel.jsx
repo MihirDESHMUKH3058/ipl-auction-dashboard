@@ -49,15 +49,36 @@ export default function AuctionAdminPanel({ players, auctionRecords, setAuctionR
   };
 
   const handleResetPlayer = async (id) => {
+    const stringId = id.toString();
+    console.log("Undoing sale for player:", stringId);
+    
     // Optimistic Update
     const newRecords = { ...auctionRecords };
-    delete newRecords[id];
+    delete newRecords[stringId];
     setAuctionRecords(newRecords);
 
     // Supabase Sync
     if (import.meta.env.VITE_SUPABASE_URL && import.meta.env.VITE_SUPABASE_URL !== 'YOUR_SUPABASE_URL_HERE') {
-      const { error } = await supabase.from('auction_records').delete().eq('player_id', id.toString());
+      const { error } = await supabase.from('auction_records').delete().eq('player_id', stringId);
       if (error) console.error("Supabase delete error:", error);
+    }
+  };
+
+  const handleResetAll = async () => {
+    if (!window.confirm("⚠️ DANGER: This will UN-SELL ALL players and clear the entire auction history. Are you absolutely sure?")) {
+      return;
+    }
+
+    console.log("Resetting entire auction...");
+    
+    // Optimistic Update
+    setAuctionRecords({});
+
+    // Supabase Sync
+    if (import.meta.env.VITE_SUPABASE_URL && import.meta.env.VITE_SUPABASE_URL !== 'YOUR_SUPABASE_URL_HERE') {
+      // Deleting all records where player_id is not null (effectively all rows)
+      const { error } = await supabase.from('auction_records').delete().neq('player_id', '0');
+      if (error) console.error("Supabase Reset All error:", error);
     }
   };
 
@@ -165,22 +186,31 @@ export default function AuctionAdminPanel({ players, auctionRecords, setAuctionR
           {Object.entries(auctionRecords).length === 0 ? (
             <p className="empty-state">No players sold yet.</p>
           ) : (
-            [...Object.entries(auctionRecords)].reverse().map(([id, record]) => {
-              const p = players.find(p => p.id.toString() === id);
-              if (!p) return null;
-              return (
-                <div key={id} className="history-item">
-                  <div className="history-info">
-                    <strong>{p.name}</strong> 
-                    <span className="history-team badge" style={{backgroundColor: `var(--${record.team.toLowerCase()})`}}>{record.team}</span>
+            <>
+              {[...Object.entries(auctionRecords)].reverse().map(([id, record]) => {
+                const p = players.find(p => p.id.toString() === id);
+                if (!p) return null;
+                return (
+                  <div key={id} className="history-item">
+                    <div className="history-info">
+                      <strong>{p.name}</strong> 
+                      <span className="history-team badge" style={{backgroundColor: `var(--${record.team.toLowerCase()})`}}>{record.team}</span>
+                    </div>
+                    <div className="history-actions">
+                      <span className="history-price">{record.finalPrice}</span>
+                      <button type="button" onClick={() => handleResetPlayer(id)} className="undo-btn">Undo</button>
+                    </div>
                   </div>
-                  <div className="history-actions">
-                    <span className="history-price">{record.finalPrice}</span>
-                    <button type="button" onClick={() => handleResetPlayer(id)} className="undo-btn">Undo</button>
-                  </div>
-                </div>
-              );
-            })
+                );
+              })}
+              <button 
+                type="button" 
+                className="reset-all-btn" 
+                onClick={handleResetAll}
+              >
+                ⚠️ Reset All Players to Unsold
+              </button>
+            </>
           )}
         </div>
       </div>

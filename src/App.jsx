@@ -60,34 +60,37 @@ function App() {
         console.error('Error fetching Supabase records:', error);
       } else if (data) {
         const recordsMap = {};
-        data.forEach(row => {
-          recordsMap[row.player_id] = { team: row.team, finalPrice: row.finalPrice };
-        });
-        // Override local storage with truth from DB
-        setAuctionRecords(prev => ({ ...prev, ...recordsMap }));
+        // Use records from Supabase as the source of truth, replacing any local stale data
+        setAuctionRecords(recordsMap);
       }
 
       // 2. Subscribe to Real-Time Updates
       channel = supabase
         .channel('public:auction_records')
         .on('postgres_changes', { event: '*', schema: 'public', table: 'auction_records' }, (payload) => {
-          console.log('Realtime change received!', payload);
+          console.log('Realtime change received!', payload.eventType, payload);
           if (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE') {
             const row = payload.new;
+            console.log('Syncing INSERT/UPDATE:', row.player_id);
             setAuctionRecords(prev => ({
               ...prev,
               [row.player_id]: { team: row.team, finalPrice: row.finalPrice }
             }));
           } else if (payload.eventType === 'DELETE') {
             const row = payload.old;
+            console.log('Syncing DELETE for player_id:', row.player_id);
             setAuctionRecords(prev => {
               const newRecords = { ...prev };
-              delete newRecords[row.player_id];
+              if (row.player_id) {
+                delete newRecords[row.player_id];
+              }
               return newRecords;
             });
           }
         })
-        .subscribe();
+        .subscribe((status) => {
+          console.log('Supabase Realtime subscription status:', status);
+        });
     };
 
     setupSupabase();
