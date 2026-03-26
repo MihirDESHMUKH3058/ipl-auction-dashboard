@@ -40,9 +40,11 @@ export default function AnonymousAuction({ players, auctionRecords, setAuctionRe
       // Subscribe to settings changes
       const settingsChannel = supabase.channel('settings_changes')
         .on('postgres_changes', { event: '*', schema: 'public', table: 'anonymous_auction_settings' }, payload => {
-          const newSettings = payload.new;
-          setActivePlayerId(newSettings.active_player_id);
-          setBidsRevealed(newSettings.bids_revealed);
+          console.log('Settings changed!', payload);
+          if (payload.new) {
+            setActivePlayerId(payload.new.active_player_id ? payload.new.active_player_id.toString() : null);
+            setBidsRevealed(payload.new.bids_revealed);
+          }
         })
         .subscribe();
 
@@ -94,9 +96,22 @@ export default function AnonymousAuction({ players, auctionRecords, setAuctionRe
 
   // Admin Actions
   const handleSelectPlayer = async (pid) => {
-    await supabase.from('anonymous_auction_settings').upsert({ id: 1, active_player_id: pid, bids_revealed: false });
-    // Clear old bids for this player
-    await supabase.from('anonymous_bids').delete().eq('player_id', pid);
+    const stringId = pid.toString();
+    const { error } = await supabase.from('anonymous_auction_settings').upsert({ 
+      id: 1, 
+      active_player_id: stringId, 
+      bids_revealed: false 
+    });
+    
+    if (error) {
+      console.error("Selection error:", error);
+    } else {
+      // Clear old bids for this player
+      await supabase.from('anonymous_bids').delete().eq('player_id', stringId);
+      // Optimistic update
+      setActivePlayerId(stringId);
+      setBidsRevealed(false);
+    }
   };
 
   const handleToggleReveal = async () => {
