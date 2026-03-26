@@ -195,6 +195,7 @@ function App() {
             players={players} 
             auctionRecords={auctionRecords} 
             setAuctionRecords={setAuctionRecords} 
+            isAdmin={isAdmin}
           />
         ) : activeTab === 'bags' ? (
           <PlayerBags 
