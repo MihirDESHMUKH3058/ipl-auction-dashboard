@@ -23,7 +23,7 @@ export default function AnonymousAuction({ players, auctionRecords, setAuctionRe
   }, [players]);
 
   const activePlayer = useMemo(() => {
-    return players.find(p => p.id === activePlayerId);
+    return players.find(p => p.id.toString() === activePlayerId);
   }, [players, activePlayerId]);
 
   // 1. Initial Fetch and Subscriptions
@@ -240,7 +240,7 @@ export default function AnonymousAuction({ players, auctionRecords, setAuctionRe
                     return (
                       <div 
                         key={p.id} 
-                        className={`player-item ${activePlayerId === p.id ? 'active' : ''} ${isSold ? 'sold' : ''}`}
+                        className={`player-item ${activePlayerId === p.id.toString() ? 'active' : ''} ${isSold ? 'sold' : ''}`}
                         onClick={() => !isSold && handleSelectPlayer(p.id)}
                       >
                         <img src={`${import.meta.env.BASE_URL}players/${p.image_file}`} alt={p.name} className="player-thumb" />
