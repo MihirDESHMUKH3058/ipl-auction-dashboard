@@ -60,6 +60,9 @@ function App() {
         console.error('Error fetching Supabase records:', error);
       } else if (data) {
         const recordsMap = {};
+        data.forEach(row => {
+          recordsMap[row.player_id] = { team: row.team, finalPrice: row.finalPrice };
+        });
         // Use records from Supabase as the source of truth, replacing any local stale data
         setAuctionRecords(recordsMap);
       }
