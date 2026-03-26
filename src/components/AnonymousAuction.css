@@ -428,3 +428,50 @@
     padding: 0.5rem;
   }
 }
+
+.timer-badge {
+  background: rgba(255, 68, 68, 0.15);
+  border: 1px solid #ff4444;
+  color: #ff4444;
+  padding: 0.4rem 1rem;
+  border-radius: 20px;
+  font-weight: 700;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 1.1rem;
+  box-shadow: 0 0 10px rgba(255, 68, 68, 0.3);
+  animation: pulse-red 2s infinite;
+}
+
+@keyframes pulse-red {
+  0% { box-shadow: 0 0 5px rgba(255, 68, 68, 0.3); }
+  50% { box-shadow: 0 0 15px rgba(255, 68, 68, 0.6); }
+  100% { box-shadow: 0 0 5px rgba(255, 68, 68, 0.3); }
+}
+
+.mystery-blur {
+  filter: grayscale(1) brightness(0.7) blur(4px);
+  transition: all 0.5s ease;
+}
+
+.start-timer-btn {
+  background: linear-gradient(135deg, #ff4e50, #f9d423) !important;
+  color: #000 !important;
+  font-weight: 800 !important;
+  margin-bottom: 1.5rem;
+  padding: 1rem 2rem !important;
+  border-radius: 8px !important;
+}
+
+.time-up-msg {
+  text-align: center;
+  padding: 2rem;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 12px;
+  border: 1px dashed rgba(255, 255, 255, 0.1);
+}
+
+.time-up-msg h3 {
+  color: #ff4444;
+  letter-spacing: 2px;
+  margin-bottom: 0.5rem;
+}

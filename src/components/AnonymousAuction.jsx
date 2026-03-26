@@ -11,8 +11,12 @@ export default function AnonymousAuction({ players, auctionRecords, setAuctionRe
   // State from Supabase
   const [activePlayerId, setActivePlayerId] = useState(null);
   const [bidsRevealed, setBidsRevealed] = useState(false);
-  const [dbBids, setDbBids] = useState([]); // Array of { team_name, amount, player_id }
+  const [endTime, setEndTime] = useState(null); // Date object
+  const [dbBids, setDbBids] = useState([]); 
   const [myBid, setMyBid] = useState('');
+
+  // Local Timer State
+  const [timeLeft, setTimeLeft] = useState(0);
 
   const anonymousPlayers = useMemo(() => {
     return players.filter(p => p.isAnonymous === true);
@@ -33,17 +37,18 @@ export default function AnonymousAuction({ players, auctionRecords, setAuctionRe
         .single();
       
       if (settings) {
-        setActivePlayerId(settings.active_player_id);
+        setActivePlayerId(settings.active_player_id ? settings.active_player_id.toString() : null);
         setBidsRevealed(settings.bids_revealed);
+        setEndTime(settings.end_time ? new Date(settings.end_time) : null);
       }
 
       // Subscribe to settings changes
       const settingsChannel = supabase.channel('settings_changes')
         .on('postgres_changes', { event: '*', schema: 'public', table: 'anonymous_auction_settings' }, payload => {
-          console.log('Settings changed!', payload);
           if (payload.new) {
             setActivePlayerId(payload.new.active_player_id ? payload.new.active_player_id.toString() : null);
             setBidsRevealed(payload.new.bids_revealed);
+            setEndTime(payload.new.end_time ? new Date(payload.new.end_time) : null);
           }
         })
         .subscribe();
@@ -51,7 +56,7 @@ export default function AnonymousAuction({ players, auctionRecords, setAuctionRe
       // Subscribe to bids changes
       const bidsChannel = supabase.channel('bids_changes')
         .on('postgres_changes', { event: '*', schema: 'public', table: 'anonymous_bids' }, payload => {
-          fetchBids(activePlayerId); // Re-fetch all bids when one changes
+          fetchBids(activePlayerId);
         })
         .subscribe();
 
@@ -63,6 +68,27 @@ export default function AnonymousAuction({ players, auctionRecords, setAuctionRe
 
     setupSubscriptions();
   }, [activePlayerId]);
+
+  // Timer Ticking Logic
+  useEffect(() => {
+    if (!endTime) {
+      setTimeLeft(0);
+      return;
+    }
+
+    const timer = setInterval(() => {
+      const now = new Date().getTime();
+      const distance = endTime.getTime() - now;
+      const seconds = Math.max(0, Math.floor(distance / 1000));
+      setTimeLeft(seconds);
+      
+      if (seconds <= 0) {
+        clearInterval(timer);
+      }
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [endTime]);
 
   // Fetch bids for the active player
   const fetchBids = async (pid) => {
@@ -82,7 +108,6 @@ export default function AnonymousAuction({ players, auctionRecords, setAuctionRe
     fetchBids(activePlayerId);
   }, [activePlayerId]);
 
-  // Update myBid local state when dbBids change (if I already have a bid in DB)
   useEffect(() => {
     if (userTeam && dbBids.length > 0) {
       const existing = dbBids.find(b => b.team_name === userTeam);
@@ -97,21 +122,25 @@ export default function AnonymousAuction({ players, auctionRecords, setAuctionRe
   // Admin Actions
   const handleSelectPlayer = async (pid) => {
     const stringId = pid.toString();
-    const { error } = await supabase.from('anonymous_auction_settings').upsert({ 
+    await supabase.from('anonymous_auction_settings').upsert({ 
       id: 1, 
       active_player_id: stringId, 
-      bids_revealed: false 
+      bids_revealed: false,
+      end_time: null 
     });
-    
-    if (error) {
-      console.error("Selection error:", error);
-    } else {
-      // Clear old bids for this player
-      await supabase.from('anonymous_bids').delete().eq('player_id', stringId);
-      // Optimistic update
-      setActivePlayerId(stringId);
-      setBidsRevealed(false);
-    }
+    await supabase.from('anonymous_bids').delete().eq('player_id', stringId);
+    setActivePlayerId(stringId);
+    setBidsRevealed(false);
+    setEndTime(null);
+  };
+
+  const handleStartTimer = async () => {
+    const threeMinutesFuture = new Date(new Date().getTime() + 3 * 60 * 1000);
+    await supabase.from('anonymous_auction_settings').update({ 
+      end_time: threeMinutesFuture.toISOString(),
+      bids_revealed: false 
+    }).eq('id', 1);
+    setEndTime(threeMinutesFuture);
   };
 
   const handleToggleReveal = async () => {
@@ -122,7 +151,6 @@ export default function AnonymousAuction({ players, auctionRecords, setAuctionRe
     if (!activePlayer) return;
     const priceString = `₹${amount},00,000`;
     
-    // 1. Add to main auction records
     const { error } = await supabase.from('auction_records').upsert({
       player_id: activePlayer.id.toString(),
       team: winningTeam,
@@ -130,11 +158,8 @@ export default function AnonymousAuction({ players, auctionRecords, setAuctionRe
     });
 
     if (!error) {
-      // 2. Reset anonymous state
-      await supabase.from('anonymous_auction_settings').update({ active_player_id: null, bids_revealed: false }).eq('id', 1);
+      await supabase.from('anonymous_auction_settings').update({ active_player_id: null, bids_revealed: false, end_time: null }).eq('id', 1);
       await supabase.from('anonymous_bids').delete().eq('player_id', activePlayer.id);
-      
-      // Update local state if needed (App.jsx will handle via realtime)
       setAuctionRecords(prev => ({
         ...prev,
         [activePlayer.id]: { team: winningTeam, finalPrice: priceString }
@@ -142,14 +167,13 @@ export default function AnonymousAuction({ players, auctionRecords, setAuctionRe
     }
   };
 
-  // Team Actions
   const handleSetTeam = (team) => {
     setUserTeam(team);
     localStorage.setItem('userTeam', team);
   };
 
   const handleSubmitBid = async () => {
-    if (!activePlayer || !userTeam || !myBid) return;
+    if (!activePlayer || !userTeam || !myBid || timeLeft <= 0) return;
     const amount = parseInt(myBid);
     if (isNaN(amount)) return;
 
@@ -161,18 +185,24 @@ export default function AnonymousAuction({ players, auctionRecords, setAuctionRe
     alert("Bid Submitted Successfully!");
   };
 
-  // Components
+  const formatTime = (seconds) => {
+    const m = Math.floor(seconds / 60);
+    const s = seconds % 60;
+    return `${m}:${s < 10 ? '0' : ''}${s}`;
+  };
+
+  // Determine if identity should be hidden
+  const isMystery = activePlayer && !bidsRevealed && timeLeft > 0;
+
   if (!isAdmin && !userTeam) {
     return (
       <div className="team-picker-container">
         <h1>Select Your Team</h1>
-        <p>You must choose your team to participate in secret bidding.</p>
         <div className="team-grid">
           {teams.map(t => (
             <div key={t} className="team-card" onClick={() => handleSetTeam(t)}>
                <div className="team-badge" style={{ backgroundColor: `var(--${t.toLowerCase()})` }}></div>
                <h3>{t}</h3>
-               <p>Click to select</p>
             </div>
           ))}
         </div>
@@ -186,19 +216,19 @@ export default function AnonymousAuction({ players, auctionRecords, setAuctionRe
     <div className="anonymous-auction-container">
       <div className="anonymous-header">
         <h1 className="anonymous-title">Secret Bidding Arena</h1>
-        <div style={{display:'flex', justifyContent:'center', gap:'1rem'}}>
-          <p className="anonymous-subtitle">Real-time Multi-User Auction</p>
+        <div style={{display:'flex', justifyContent:'center', gap:'1rem', alignItems:'center'}}>
+          <p className="anonymous-subtitle">Strategic Mystery Auction</p>
           {userTeam && !isAdmin && (
             <div className="current-team-info">
-              <span>Your Team: <strong>{userTeam}</strong></span>
+              <span><strong>{userTeam}</strong></span>
               <button className="change-team-btn" onClick={() => setUserTeam(null)}>Change</button>
             </div>
           )}
+          {timeLeft > 0 && <div className="timer-badge">⏳ {formatTime(timeLeft)}</div>}
         </div>
       </div>
 
       <div className="auction-layout">
-        {/* LEFT COLUMN: Admin Player List OR Status List */}
         <div className="player-selection-card">
           {isAdmin ? (
             <>
@@ -239,33 +269,39 @@ export default function AnonymousAuction({ players, auctionRecords, setAuctionRe
                   );
                 })}
               </div>
-              <p className="waiting-msg">Wait for the admin to reveal all bids.</p>
+              <p className="waiting-msg">{timeLeft > 0 ? "Bidding is OPEN! Submit your bid." : "Bidding is CLOSED. Waiting for Admin reveal."}</p>
             </>
           )}
         </div>
 
-        {/* RIGHT COLUMN: Active Console */}
         <div className="bidding-console">
           {activePlayer ? (
             <>
               <div className="player-header-mini">
-                <img src={`${import.meta.env.BASE_URL}players/${activePlayer.image_file}`} alt={activePlayer.name} className="mini-img" />
+                <img 
+                  src={isMystery ? `${import.meta.env.BASE_URL}mystery_player_placeholder.png` : `${import.meta.env.BASE_URL}players/${activePlayer.image_file}`} 
+                  alt={isMystery ? "Mystery Player" : activePlayer.name} 
+                  className={`mini-img ${isMystery ? 'mystery-blur' : ''}`} 
+                />
                 <div>
-                  <h2 style={{margin:0}}>{activePlayer.name}</h2>
-                  <p style={{color: '#a0aec0', margin: '0.5rem 0'}}>{activePlayer.role} • {activePlayer.nationality}</p>
+                  <h2 style={{margin:0}}>{isMystery ? "??? Mystery Marquee Player ???" : activePlayer.name}</h2>
+                  <p style={{color: '#a0aec0', margin: '0.5rem 0'}}>{isMystery ? "Role: Hidden" : `${activePlayer.role} • ${activePlayer.nationality}`}</p>
                   <div className="base-price-badge">Base Price: {activePlayer.basePrice}</div>
                 </div>
               </div>
 
-              {/* ADMIN VIEW OF BIDS */}
               {isAdmin && (
                 <div className="admin-only-info">
-                  <h4>Admin Control Panel (Bids)</h4>
+                  <h4>Admin Controls</h4>
+                  {timeLeft <= 0 && !bidsRevealed && (
+                    <button className="action-btn start-timer-btn" onClick={handleStartTimer}>Start 3-Minute Timer</button>
+                  )}
+                  
                   <table style={{width: '100%', marginTop: '1rem', borderCollapse: 'collapse'}}>
                     <thead>
                       <tr style={{textAlign: 'left', borderBottom: '1px solid rgba(255,255,255,0.1)'}}>
                         <th style={{padding: '0.5rem'}}>Team</th>
-                        <th style={{padding: '0.5rem'}}>Bid Amount (Lakhs)</th>
+                        <th style={{padding: '0.5rem'}}>Bid Amount</th>
                         <th style={{padding: '0.5rem'}}>Action</th>
                       </tr>
                     </thead>
@@ -283,31 +319,27 @@ export default function AnonymousAuction({ players, auctionRecords, setAuctionRe
                       ))}
                     </tbody>
                   </table>
-                  <div className="actions-row">
-                    <button className="action-btn reveal-btn" onClick={handleToggleReveal}>
-                      {bidsRevealed ? "Hide Bids" : "Reveal All Bids"}
-                    </button>
-                  </div>
+                  <button className="action-btn reveal-btn" style={{marginTop: '1rem'}} onClick={handleToggleReveal}>
+                    {bidsRevealed ? "Hide Identity" : "Reveal Identity & Bids"}
+                  </button>
                 </div>
               )}
 
-              {/* TEAM VIEW / PUBLIC VIEW */}
               {!isAdmin && (
                 <div className="bid-controls-card">
                   {bidsRevealed ? (
                     <div className="winner-announce">
-                      <h3>🏆 ALL BIDS REVEALED</h3>
+                      <h3>🏆 RESULTS REVEALED</h3>
                       <div style={{marginTop: '1.5rem'}}>
                         {dbBids.sort((a,b) => b.amount - a.amount).map(b => (
                           <div key={b.team_name} style={{display:'flex', justifyContent:'space-between', padding:'0.5rem', borderBottom:'1px solid rgba(255,255,255,0.05)'}}>
-                            <span>{b.team_name}</span>
+                            <span>{b.team_name} {b.team_name === winner.team_name ? '🏆' : ''}</span>
                             <strong>₹{b.amount} Lakhs</strong>
                           </div>
                         ))}
                       </div>
-                      <p style={{marginTop: '1.5rem', color: 'var(--neon-blue)'}}>Winning Team: {winner.team_name}</p>
                     </div>
-                  ) : (
+                  ) : timeLeft > 0 ? (
                     <>
                       <h3>Enter Your Bid (Confidential)</h3>
                       <div className="bid-input-wrapper large-bid-input">
@@ -320,15 +352,19 @@ export default function AnonymousAuction({ players, auctionRecords, setAuctionRe
                         />
                       </div>
                       <button className="action-btn submit-bid-btn" onClick={handleSubmitBid}>Submit Bid</button>
-                      <p style={{marginTop: '1rem', color: '#718096', fontSize: '0.9rem'}}>Your bid is only visible to the auctioneer.</p>
                     </>
+                  ) : (
+                    <div className="time-up-msg">
+                      <h3>⌛ TIME IS UP</h3>
+                      <p>Bidding has closed for this player. Waiting for Admin reveal.</p>
+                    </div>
                   )}
                 </div>
               )}
             </>
           ) : (
             <div className="no-selection">
-              <p>{isAdmin ? "Select a player from the list to start the bidding session" : "Waiting for Admin to start the next bidding session..."}</p>
+              <p>{isAdmin ? "Select a player to start" : "Waiting for next mystery player..."}</p>
             </div>
           )}
         </div>
