@@ -78,6 +78,12 @@ export default function PlayerCard({ player, auctionRecord }) {
           <span className="rating-text">{player.rating}/10</span>
         </div>
 
+        {auctionRecord && (
+          <div className="sold-status-badge" style={{ backgroundColor: `var(--${auctionRecord.team.toLowerCase()})` }}>
+            SOLD TO {auctionRecord.team}
+          </div>
+        )}
+
         <div className="card-footer">
           {auctionRecord ? (
             <>
