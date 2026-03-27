@@ -13,9 +13,7 @@ function App() {
   const [players, setPlayers] = useState([]);
   const [activeTab, setActiveTab] = useState('catalog');
   const [isAdmin, setIsAdmin] = useState(false);
-  const [isAuthenticated, setIsAuthenticated] = useState(() => {
-    return localStorage.getItem('isAuth') === 'true';
-  });
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [showLogin, setShowLogin] = useState(!isAuthenticated);
   const [loginCode, setLoginCode] = useState('');
   const [showPasswordStep, setShowPasswordStep] = useState(false);
@@ -175,8 +173,6 @@ function App() {
     } else if (teamCodes.includes(loginCode)) {
       setIsAuthenticated(true);
       setIsAdmin(false);
-      localStorage.setItem('isAuth', 'true');
-      localStorage.setItem('isAdmin', 'false');
       setShowLogin(false);
     } else {
       alert("Invalid Access Code!");
@@ -188,21 +184,13 @@ function App() {
     if (adminPassword === 'etc@2027') {
       setIsAuthenticated(true);
       setIsAdmin(true);
-      localStorage.setItem('isAuth', 'true');
-      localStorage.setItem('isAdmin', 'true');
       setShowLogin(false);
     } else {
       alert("Incorrect Admin Password!");
     }
   };
 
-  // Sync admin state from localStorage on load
-  useEffect(() => {
-    if (isAuthenticated) {
-      const savedAdmin = localStorage.getItem('isAdmin') === 'true';
-      setIsAdmin(savedAdmin);
-    }
-  }, [isAuthenticated]);
+  // Admin state is now handled directly by the login submit logic
 
   if (showLogin) {
     return (
