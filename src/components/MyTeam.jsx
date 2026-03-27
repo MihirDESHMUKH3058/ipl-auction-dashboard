@@ -6,14 +6,14 @@ export default function MyTeam({ players, auctionRecords, userTeam }) {
     if (!userTeam) return null;
     
     const boughtPlayerIds = Object.keys(auctionRecords).filter(
-      id => auctionRecords[id].team === userTeam
+      id => auctionRecords[id.toString()].team === userTeam
     );
     
     const roster = boughtPlayerIds.map(id => {
-      const p = players.find(player => player.id.toString() === id);
+      const p = players.find(player => player.id.toString() === id.toString());
       return {
         ...p,
-        finalPrice: auctionRecords[id].finalPrice
+        finalPrice: auctionRecords[id.toString()].finalPrice
       };
     }).filter(p => p.name);
 

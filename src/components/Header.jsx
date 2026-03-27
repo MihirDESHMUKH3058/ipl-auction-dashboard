@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-export default function Header({ activeTab, setActiveTab, isAdmin, setIsAdmin, userTeam, setUserTeam, setIsAuthenticated, setShowLogin }) {
+export default function Header({ activeTab, setActiveTab, isAdmin, setIsAdmin, userTeam, setUserTeam, setIsAuthenticated, setShowLogin, refreshData }) {
   const handleLogout = () => {
     localStorage.removeItem('ipl_auction_session');
     setIsAuthenticated(false);
@@ -70,6 +70,14 @@ export default function Header({ activeTab, setActiveTab, isAdmin, setIsAdmin, u
       </div>
 
       <div className="header-right" style={{display: 'flex', alignItems: 'center', gap: '1rem'}}>
+        <button 
+          className="nav-tab sync-btn" 
+          onClick={refreshData} 
+          style={{backgroundColor: 'rgba(0, 229, 255, 0.1)', border: '1px solid var(--neon-blue)', color: 'var(--neon-blue)', padding: '4px 12px'}}
+          title="Force refresh auction data"
+        >
+          🔄 Sync Now
+        </button>
         {userTeam && <div className="user-badge team" style={{backgroundColor: `var(--${userTeam.toLowerCase()})`, padding: '4px 8px', borderRadius: '4px', fontSize: '0.8rem', fontWeight: 'bold'}}>{userTeam}</div>}
         {isAdmin && <div className="user-badge admin" style={{backgroundColor: '#e53e3e', padding: '4px 8px', borderRadius: '4px', fontSize: '0.8rem', fontWeight: 'bold'}}>ADMIN</div>}
         <button className="nav-tab logout-btn" onClick={handleLogout} style={{color: '#ff4d4d'}}>Logout</button>

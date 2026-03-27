@@ -12,10 +12,10 @@ export default function TeamRosters({ players, auctionRecords }) {
     );
     
     const roster = boughtPlayerIds.map(id => {
-      const p = players.find(player => player.id.toString() === id);
+      const p = players.find(player => player.id.toString() === id.toString());
       return {
         ...p,
-        finalPrice: auctionRecords[id].finalPrice
+        finalPrice: auctionRecords[id.toString()].finalPrice
       };
     }).filter(p => p.name); // ensure we found them
 

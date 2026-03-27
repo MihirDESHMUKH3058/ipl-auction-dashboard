@@ -15,7 +15,7 @@ export default function PlayerGrid({ players, auctionRecords = {} }) {
   return (
     <div className="player-grid">
       {players.map(player => (
-        <PlayerCard key={player.id} player={player} auctionRecord={auctionRecords[player.id]} />
+        <PlayerCard key={player.id} player={player} auctionRecord={auctionRecords[player.id.toString()]} />
       ))}
     </div>
   );

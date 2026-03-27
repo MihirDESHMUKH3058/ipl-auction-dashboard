@@ -96,6 +96,23 @@ function App() {
   }, [auctionRecords]);
 
   // Supabase: Fetch initial data and subscribe to Real-Time updates
+  const fetchAuctionRecords = async () => {
+    const isSupabaseConfigured = import.meta.env.VITE_SUPABASE_URL && import.meta.env.VITE_SUPABASE_URL !== 'YOUR_SUPABASE_URL_HERE';
+    if (!isSupabaseConfigured) return;
+
+    const { data, error } = await supabase.from('auction_records').select('*');
+    if (error) {
+      console.error('Error fetching Supabase records:', error);
+    } else if (data) {
+      const recordsMap = {};
+      data.forEach(row => {
+        recordsMap[row.player_id.toString()] = { team: row.team, finalPrice: row.finalPrice };
+      });
+      setAuctionRecords(recordsMap);
+      console.log("Auction records synchronized from Supabase");
+    }
+  };
+
   useEffect(() => {
     let channel;
     const isSupabaseConfigured = import.meta.env.VITE_SUPABASE_URL && import.meta.env.VITE_SUPABASE_URL !== 'YOUR_SUPABASE_URL_HERE';
@@ -106,21 +123,11 @@ function App() {
         return;
       }
 
-      // 1. Fetch existing records
-      const { data, error } = await supabase.from('auction_records').select('*');
-      if (error) {
-        console.error('Error fetching Supabase records:', error);
-      } else if (data) {
-        const recordsMap = {};
-        data.forEach(row => {
-          recordsMap[row.player_id] = { team: row.team, finalPrice: row.finalPrice };
-        });
-        // Use records from Supabase as the source of truth, replacing any local stale data
-        setAuctionRecords(recordsMap);
-      }
+      // 1. Fetch initial records
+      await fetchAuctionRecords();
 
       // 2. Subscribe to Real-Time Updates & Presence
-      channel = supabase.channel('public:auction_records', {
+      channel = supabase.channel('realtime-auction', {
         config: {
           presence: {
             key: myPresenceId,
@@ -133,18 +140,20 @@ function App() {
           console.log('Realtime change received!', payload.eventType, payload);
           if (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE') {
             const row = payload.new;
-            console.log('Syncing INSERT/UPDATE:', row.player_id);
+            const pidString = row.player_id.toString();
+            console.log('Syncing INSERT/UPDATE for player:', pidString);
             setAuctionRecords(prev => ({
               ...prev,
-              [row.player_id]: { team: row.team, finalPrice: row.finalPrice }
+              [pidString]: { team: row.team, finalPrice: row.finalPrice }
             }));
           } else if (payload.eventType === 'DELETE') {
             const row = payload.old;
-            console.log('Syncing DELETE for player_id:', row.player_id);
+            const pidString = row.player_id.toString();
+            console.log('Syncing DELETE for player:', pidString);
             setAuctionRecords(prev => {
               const newRecords = { ...prev };
-              if (row.player_id) {
-                delete newRecords[row.player_id];
+              if (pidString) {
+                delete newRecords[pidString];
               }
               return newRecords;
             });
@@ -176,7 +185,7 @@ function App() {
     return () => {
       if (channel) supabase.removeChannel(channel);
     };
-  }, []);
+  }, [isAuthenticated, isAdmin, loginCode]);
 
   // Also sync to local Excel file (only works on local dev server)
   useEffect(() => {
@@ -225,7 +234,7 @@ function App() {
         if (playerLakhs > maxLakhs) return false;
       }
       
-      const isSold = !!auctionRecords[p.id];
+      const isSold = !!auctionRecords[p.id.toString()];
       if (filters.availability === 'Available' && isSold) return false;
       if (filters.availability === 'Sold' && !isSold) return false;
 
@@ -350,6 +359,7 @@ function App() {
         setUserTeam={setUserTeam}
         setIsAuthenticated={setIsAuthenticated}
         setShowLogin={setShowLogin}
+        refreshData={fetchAuctionRecords}
       />
       
       <main className="main-content">

@@ -115,7 +115,7 @@ export default function PlayerBags({ players, auctionRecords }) {
         ) : (
           <div className="bags-grid">
             {filteredPlayers.map(player => (
-              <PlayerCard key={player.id} player={player} auctionRecord={auctionRecords[player.id]} />
+              <PlayerCard key={player.id} player={player} auctionRecord={auctionRecords[player.id.toString()]} />
             ))}
           </div>
         )}
