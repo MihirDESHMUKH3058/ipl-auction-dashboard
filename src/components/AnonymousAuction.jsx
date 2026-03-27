@@ -125,7 +125,7 @@ export default function AnonymousAuction({ players, auctionRecords, setAuctionRe
     if (userTeam && dbBids.length > 0) {
       const existing = dbBids.find(b => b.team_name === userTeam);
       if (existing) {
-        setMyBid(existing.amount.toString());
+        setMyBid((existing.amount / 100).toString());
       } else {
         setMyBid('');
       }
@@ -187,10 +187,11 @@ export default function AnonymousAuction({ players, auctionRecords, setAuctionRe
 
   const handleSubmitBid = async () => {
     if (!activePlayer || !userTeam || !myBid || timeLeft <= 0) return;
-    const amount = parseInt(myBid);
-    if (isNaN(amount)) return;
+    const amountCr = parseFloat(myBid);
+    if (isNaN(amountCr)) return;
+    const amountLakhs = Math.round(amountCr * 100);
 
-    if (amount > userRemainingPurse) {
+    if (amountLakhs > userRemainingPurse) {
       alert(`❌ Over Budget! Your remaining purse is ₹${userRemainingPurse >= 100 ? (userRemainingPurse/100).toFixed(2) + ' Cr' : userRemainingPurse + ' Lakhs'}.`);
       return;
     }
@@ -198,7 +199,7 @@ export default function AnonymousAuction({ players, auctionRecords, setAuctionRe
     await supabase.from('anonymous_bids').upsert({
       player_id: activePlayer.id,
       team_name: userTeam,
-      amount: amount
+      amount: amountLakhs
     });
     alert("Bid Submitted Successfully!");
   };
@@ -330,7 +331,7 @@ export default function AnonymousAuction({ players, auctionRecords, setAuctionRe
                       {dbBids.map(b => (
                         <tr key={b.team_name}>
                           <td style={{padding: '0.5rem'}}>{b.team_name}</td>
-                          <td style={{padding: '0.5rem'}}>₹{b.amount} Lakhs</td>
+                          <td style={{padding: '0.5rem'}}>₹{b.amount >= 100 ? (b.amount / 100).toFixed(2) + ' Cr' : b.amount + ' L'}</td>
                           <td style={{padding: '0.5rem'}}>
                             {bidsRevealed && (
                               <button className="sell-btn-anon" style={{padding: '4px 12px', fontSize: '0.8rem'}} onClick={() => handleConfirmWinner(b.team_name, b.amount)}>Confirm Win</button>
@@ -367,10 +368,12 @@ export default function AnonymousAuction({ players, auctionRecords, setAuctionRe
                         <span className="currency" style={{fontSize: '1.5rem'}}>₹</span>
                         <input 
                           type="number" 
-                          placeholder="Price in Lakhs"
+                          step="0.01"
+                          placeholder="Price in Crore (e.g. 12.8)"
                           value={myBid}
                           onChange={(e) => setMyBid(e.target.value)}
                         />
+                         <span className="lakhs-suffix" style={{fontSize: '1.2rem', marginLeft: '0.5rem', color: '#a0aec0'}}>Cr</span>
                       </div>
                       <button className="action-btn submit-bid-btn" onClick={handleSubmitBid}>Submit Bid</button>
                     </>
