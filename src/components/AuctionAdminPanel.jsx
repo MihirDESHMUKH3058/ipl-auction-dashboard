@@ -12,7 +12,7 @@ export default function AuctionAdminPanel({ players, auctionRecords, setAuctionR
   const teams = ['CSK', 'MI', 'RCB', 'KKR', 'DC', 'SRH', 'RR', 'PBKS', 'LSG', 'GT'];
 
   const availablePlayers = useMemo(() => {
-    return players.filter(p => !auctionRecords[p.id] && p.name.toLowerCase().includes(searchTerm.toLowerCase()));
+    return players.filter(p => !auctionRecords[p.id.toString()] && p.name.toLowerCase().includes(searchTerm.toLowerCase()));
   }, [players, auctionRecords, searchTerm]);
 
   const handleSell = async (e) => {
@@ -26,7 +26,7 @@ export default function AuctionAdminPanel({ players, auctionRecords, setAuctionR
       ...auctionRecords,
       [selectedPlayerId]: {
         team: selectedTeam,
-        finalPrice: priceString
+        final_price: priceString
       }
     };
     setAuctionRecords(newRecords);
@@ -36,7 +36,7 @@ export default function AuctionAdminPanel({ players, auctionRecords, setAuctionR
       const { error } = await supabase.from('auction_records').upsert({
         player_id: selectedPlayerId.toString(),
         team: selectedTeam,
-        finalPrice: priceString
+        final_price: priceString
       });
       if (error) {
         console.error("Supabase insert error:", error);
@@ -98,7 +98,7 @@ export default function AuctionAdminPanel({ players, auctionRecords, setAuctionR
       return {
         "Player Name": p?.name || 'Unknown',
         "Team": record.team,
-        "Sold Price": record.finalPrice,
+        "Sold Price": record.final_price,
         "Rating": p?.rating || 0
       };
     });
@@ -202,7 +202,7 @@ export default function AuctionAdminPanel({ players, auctionRecords, setAuctionR
                       <span className="history-team badge" style={{backgroundColor: `var(--${record.team.toLowerCase()})`}}>{record.team}</span>
                     </div>
                     <div className="history-actions">
-                      <span className="history-price">{record.finalPrice}</span>
+                      <span className="history-price">{record.final_price}</span>
                       <button type="button" onClick={() => handleResetPlayer(id)} className="undo-btn">Undo</button>
                     </div>
                   </div>

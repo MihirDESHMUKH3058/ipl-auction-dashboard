@@ -80,6 +80,18 @@
   letter-spacing: 1px;
 }
 
+@media (max-width: 768px) {
+  .nav-tab {
+    padding: 0.5rem 1rem;
+    font-size: 0.8rem;
+    flex: 1 1 40%;
+  }
+  .sync-btn {
+    font-size: 0.75rem !important;
+    padding: 6px 10px !important;
+  }
+}
+
 .nav-tab:hover {
   color: var(--text-primary);
 }
@@ -110,6 +122,17 @@
   text-transform: uppercase;
   margin-top: 0.5rem;
   -webkit-text-fill-color: var(--text-secondary);
+}
+
+@media (max-width: 768px) {
+  .app-title {
+    font-size: 1.8rem;
+    letter-spacing: 1px;
+  }
+  .app-subtitle {
+    font-size: 0.75rem;
+    letter-spacing: 2px;
+  }
 }
 
 .rules-tracker {
@@ -146,6 +169,18 @@
 
 .rule-icon {
   color: var(--neon-green);
+}
+
+@media (max-width: 768px) {
+  .rules-tracker {
+    padding: 0.75rem;
+  }
+  .rules-title {
+    font-size: 0.7rem;
+  }
+  .rule-item {
+    font-size: 0.8rem;
+  }
 }
 
 @media (max-width: 768px) {

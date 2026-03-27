@@ -88,7 +88,7 @@ export default function PlayerCard({ player, auctionRecord }) {
           {auctionRecord ? (
             <>
               <div className="base-price-label">Final Price</div>
-              <div className="base-price-value final-price" style={{ color: `var(--${auctionRecord.team.toLowerCase()})` }}>{auctionRecord.finalPrice}</div>
+              <div className="base-price-value final-price" style={{ color: `var(--${auctionRecord.team.toLowerCase()})` }}>{auctionRecord.final_price}</div>
             </>
           ) : (
             <>

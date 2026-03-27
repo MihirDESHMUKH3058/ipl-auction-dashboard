@@ -57,20 +57,26 @@ export default function AnonymousAuction({ players, auctionRecords, setAuctionRe
       // Subscribe to settings changes
       const settingsChannel = supabase.channel('settings_changes')
         .on('postgres_changes', { event: '*', schema: 'public', table: 'anonymous_auction_settings' }, payload => {
+          console.log('Realtime settings change:', payload.eventType, payload.new);
           if (payload.new) {
             setActivePlayerId(payload.new.active_player_id ? payload.new.active_player_id.toString() : null);
             setBidsRevealed(payload.new.bids_revealed);
             setEndTime(payload.new.end_time ? new Date(payload.new.end_time) : null);
           }
         })
-        .subscribe();
+        .subscribe(status => {
+          console.log('Supabase Settings Subscription Status:', status);
+        });
 
       // Subscribe to bids changes
       const bidsChannel = supabase.channel('bids_changes')
         .on('postgres_changes', { event: '*', schema: 'public', table: 'anonymous_bids' }, payload => {
+          console.log('Realtime bids change:', payload.eventType, payload);
           fetchBids(activePlayerId);
         })
-        .subscribe();
+        .subscribe(status => {
+          console.log('Supabase Bids Subscription Status:', status);
+        });
 
       return () => {
         supabase.removeChannel(settingsChannel);
@@ -168,7 +174,7 @@ export default function AnonymousAuction({ players, auctionRecords, setAuctionRe
     const { error } = await supabase.from('auction_records').upsert({
       player_id: activePlayer.id.toString(),
       team: winningTeam,
-      finalPrice: priceString
+      final_price: priceString
     });
 
     if (error) {

@@ -15,14 +15,14 @@ export default function TeamRosters({ players, auctionRecords }) {
       const p = players.find(player => player.id.toString() === id.toString());
       return {
         ...p,
-        finalPrice: auctionRecords[id.toString()].finalPrice
+        final_price: auctionRecords[id.toString()].final_price
       };
     }).filter(p => p.name); // ensure we found them
 
     // Sum up total spent (rough estimate from string)
     let totalSpentLakhs = 0;
     roster.forEach(p => {
-      const numStr = p.finalPrice.replace(/[^0-9]/g, '');
+      const numStr = p.final_price.replace(/[^0-9]/g, '');
       totalSpentLakhs += (parseInt(numStr, 10) / 100000);
     });
 
@@ -65,7 +65,7 @@ export default function TeamRosters({ players, auctionRecords }) {
                         {player.role} • {player.overseas === 'Overseas' ? '✈️' : '🇮🇳'} • ⭐ {player.rating || 'N/A'}
                       </span>
                     </div>
-                    <span className="roster-price">{player.finalPrice}</span>
+                    <span className="roster-price">{player.final_price}</span>
                   </div>
                 ))
               )}

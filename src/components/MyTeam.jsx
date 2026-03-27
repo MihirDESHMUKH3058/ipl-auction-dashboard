@@ -13,13 +13,13 @@ export default function MyTeam({ players, auctionRecords, userTeam }) {
       const p = players.find(player => player.id.toString() === id.toString());
       return {
         ...p,
-        finalPrice: auctionRecords[id.toString()].finalPrice
+        final_price: auctionRecords[id.toString()].final_price
       };
     }).filter(p => p.name);
 
     let totalSpentLakhs = 0;
     roster.forEach(p => {
-      const numStr = p.finalPrice.replace(/[^0-9]/g, '');
+      const numStr = p.final_price.replace(/[^0-9]/g, '');
       totalSpentLakhs += (parseInt(numStr, 10) / 100000);
     });
 
@@ -73,7 +73,7 @@ export default function MyTeam({ players, auctionRecords, userTeam }) {
                     {player.role} • {player.overseas === 'Overseas' ? '✈️' : '🇮🇳'} • ⭐ {player.rating || 'N/A'}
                   </span>
                 </div>
-                <span className="roster-price">{player.finalPrice}</span>
+                <span className="roster-price">{player.final_price}</span>
               </div>
             ))
           )}

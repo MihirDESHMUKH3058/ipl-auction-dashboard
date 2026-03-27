@@ -106,7 +106,7 @@ function App() {
     } else if (data) {
       const recordsMap = {};
       data.forEach(row => {
-        recordsMap[row.player_id.toString()] = { team: row.team, finalPrice: row.finalPrice };
+        recordsMap[row.player_id.toString()] = { team: row.team, final_price: row.final_price };
       });
       setAuctionRecords(recordsMap);
       console.log("Auction records synchronized from Supabase");
@@ -137,24 +137,30 @@ function App() {
 
       channel
         .on('postgres_changes', { event: '*', schema: 'public', table: 'auction_records' }, (payload) => {
-          console.log('Realtime change received!', payload.eventType, payload);
+          console.log('Realtime change received in auction_records:', payload.eventType, payload);
           if (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE') {
             const row = payload.new;
+            if (!row || !row.player_id) {
+              console.warn('Received invalid payload for auction_records:', payload);
+              return;
+            }
             const pidString = row.player_id.toString();
-            console.log('Syncing INSERT/UPDATE for player:', pidString);
+            console.log('Syncing INSERT/UPDATE for player:', pidString, row.team, row.final_price);
             setAuctionRecords(prev => ({
               ...prev,
-              [pidString]: { team: row.team, finalPrice: row.finalPrice }
+              [pidString]: { team: row.team, final_price: row.final_price }
             }));
           } else if (payload.eventType === 'DELETE') {
             const row = payload.old;
+            if (!row || !row.player_id) {
+              console.warn('Received invalid payload for DELETE:', payload);
+              return;
+            }
             const pidString = row.player_id.toString();
             console.log('Syncing DELETE for player:', pidString);
             setAuctionRecords(prev => {
               const newRecords = { ...prev };
-              if (pidString) {
-                delete newRecords[pidString];
-              }
+              delete newRecords[pidString];
               return newRecords;
             });
           }
@@ -164,18 +170,24 @@ function App() {
           console.log('Presence sync:', newState);
           setPresenceState(newState);
         })
+        .on('system', { event: '*' }, (payload) => {
+          console.log('Supabase system event:', payload);
+        })
         .subscribe(async (status) => {
-          console.log('Supabase Realtime subscription status:', status);
+          console.log('Supabase Realtime subscription status [auction_records]:', status);
+          setSyncStatus(status === 'SUBSCRIBED' ? 'connected' : 'error');
           if (status === 'CHANNEL_ERROR') {
-            console.error("Realtime subscription failed! Trying to reconnect...");
+            console.error("Realtime subscription failed! Ensure Realtime is enabled in Supabase Dashboard -> Database -> Replication -> Publications (supabase_realtime).", status);
           }
-          if (status === 'SUBSCRIBED' && isAuthenticated && !isAdmin && loginCode) {
-            // Track presence if already authenticated as a team
-            await channel.track({ 
-              team: loginCode, 
-              online_at: new Date().toISOString(),
-              id: myPresenceId
-            });
+          if (status === 'SUBSCRIBED') {
+            console.log("Successfully subscribed to auction_records channel");
+            if (isAuthenticated && !isAdmin && loginCode) {
+              await channel.track({ 
+                team: loginCode, 
+                online_at: new Date().toISOString(),
+                id: myPresenceId
+              });
+            }
           }
         });
     };
@@ -215,7 +227,7 @@ function App() {
 
   const parsePriceToLakhs = (priceStr) => {
     if (!priceStr) return 0;
-    const numStr = priceStr.replace(/[^0-9]/g, '');
+    const numStr = priceStr.toString().replace(/[^0-9]/g, ''); // Ensure priceStr is a string
     return parseInt(numStr, 10) / 100000;
   };
 
@@ -360,6 +372,7 @@ function App() {
         setIsAuthenticated={setIsAuthenticated}
         setShowLogin={setShowLogin}
         refreshData={fetchAuctionRecords}
+        syncStatus={syncStatus}
       />
       
       <main className="main-content">

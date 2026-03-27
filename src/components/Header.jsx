@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-export default function Header({ activeTab, setActiveTab, isAdmin, setIsAdmin, userTeam, setUserTeam, setIsAuthenticated, setShowLogin, refreshData }) {
+export default function Header({ activeTab, setActiveTab, isAdmin, setIsAdmin, userTeam, setUserTeam, setIsAuthenticated, setShowLogin, refreshData, syncStatus }) {
   const handleLogout = () => {
     localStorage.removeItem('ipl_auction_session');
     setIsAuthenticated(false);
@@ -70,6 +70,27 @@ export default function Header({ activeTab, setActiveTab, isAdmin, setIsAdmin, u
       </div>
 
       <div className="header-right" style={{display: 'flex', alignItems: 'center', gap: '1rem'}}>
+        <div className="sync-status" title={`Real-time Sync: ${syncStatus}`} style={{
+          display: 'flex', 
+          alignItems: 'center', 
+          gap: '5px', 
+          fontSize: '0.7rem',
+          color: syncStatus === 'connected' ? '#48bb78' : '#e53e3e',
+          background: 'rgba(0,0,0,0.3)',
+          padding: '4px 8px',
+          borderRadius: '20px',
+          border: `1px solid ${syncStatus === 'connected' ? '#48bb78' : '#e53e3e'}`
+        }}>
+          <span style={{
+            width: '8px', 
+            height: '8px', 
+            borderRadius: '50%', 
+            backgroundColor: syncStatus === 'connected' ? '#48bb78' : '#e53e3e',
+            display: 'inline-block',
+            boxShadow: syncStatus === 'connected' ? '0 0 5px #48bb78' : 'none'
+          }}></span>
+          {syncStatus === 'connected' ? 'LIVE' : 'OFFLINE'}
+        </div>
         <button 
           className="nav-tab sync-btn" 
           onClick={refreshData} 
