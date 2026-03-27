@@ -22,6 +22,19 @@ export default function AnonymousAuction({ players, auctionRecords, setAuctionRe
     return players.filter(p => p.isAnonymous === true);
   }, [players]);
 
+  const userRemainingPurse = useMemo(() => {
+    if (!userTeam) return 0;
+    const totalPurseLakhs = 12000; // 120 Cr
+    let totalSpentLakhs = 0;
+    Object.keys(auctionRecords).forEach(id => {
+      if (auctionRecords[id].team === userTeam) {
+        const numStr = auctionRecords[id].finalPrice.replace(/[^0-9]/g, '');
+        totalSpentLakhs += (parseInt(numStr, 10) / 100000);
+      }
+    });
+    return totalPurseLakhs - totalSpentLakhs;
+  }, [userTeam, auctionRecords]);
+
   const activePlayer = useMemo(() => {
     return players.find(p => p.id.toString() === activePlayerId);
   }, [players, activePlayerId]);
@@ -177,6 +190,11 @@ export default function AnonymousAuction({ players, auctionRecords, setAuctionRe
     const amount = parseInt(myBid);
     if (isNaN(amount)) return;
 
+    if (amount > userRemainingPurse) {
+      alert(`❌ Over Budget! Your remaining purse is ₹${userRemainingPurse >= 100 ? (userRemainingPurse/100).toFixed(2) + ' Cr' : userRemainingPurse + ' Lakhs'}.`);
+      return;
+    }
+
     await supabase.from('anonymous_bids').upsert({
       player_id: activePlayer.id,
       team_name: userTeam,
@@ -221,6 +239,9 @@ export default function AnonymousAuction({ players, auctionRecords, setAuctionRe
           {userTeam && !isAdmin && (
             <div className="current-team-info">
               <span><strong>{userTeam}</strong></span>
+              <span className="purse-info" style={{marginLeft: '1rem', color: '#68d391'}}>
+                Purse: {userRemainingPurse >= 100 ? (userRemainingPurse / 100).toFixed(2) + ' Cr' : userRemainingPurse + ' L'}
+              </span>
               <button className="change-team-btn" onClick={() => setUserTeam(null)}>Change</button>
             </div>
           )}
