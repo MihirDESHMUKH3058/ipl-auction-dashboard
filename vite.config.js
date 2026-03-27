@@ -27,7 +27,7 @@ export default defineConfig({
                   return {
                     "Player Name": p?.name || 'Unknown',
                     "Team": record.team,
-                    "Sold Price": record.finalPrice,
+                    "Sold Price": record.final_price,
                     "Rating": p?.rating || 0
                   };
                 });

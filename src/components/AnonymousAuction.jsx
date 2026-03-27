@@ -27,7 +27,7 @@ export default function AnonymousAuction({ players, auctionRecords, setAuctionRe
     let totalSpentLakhs = 0;
     Object.keys(auctionRecords).forEach(id => {
       if (auctionRecords[id].team === userTeam) {
-        const numStr = auctionRecords[id].finalPrice.replace(/[^0-9]/g, '');
+        const numStr = auctionRecords[id].final_price.replace(/[^0-9]/g, '');
         totalSpentLakhs += (parseInt(numStr, 10) / 100000);
       }
     });

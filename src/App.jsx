@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import Header from './components/Header';
 import FilterBar from './components/FilterBar';
 import PlayerGrid from './components/PlayerGrid';
@@ -71,7 +71,9 @@ function App() {
           setIsAuthenticated(true);
           setShowLogin(false);
           if (!is_admin) {
-            setUserTeam(code);
+            // Map 'CSK26' -> 'CSK'
+            const actualTeam = code.replace('26', '');
+            setUserTeam(actualTeam);
           }
         } else {
           console.log("Session expired.");
@@ -97,38 +99,43 @@ function App() {
   }, [auctionRecords]);
 
   // Supabase: Fetch initial data and subscribe to Real-Time updates
-  const fetchAuctionRecords = async () => {
+  const fetchAuctionRecords = useCallback(async () => {
     const isSupabaseConfigured = import.meta.env.VITE_SUPABASE_URL && import.meta.env.VITE_SUPABASE_URL !== 'YOUR_SUPABASE_URL_HERE';
     if (!isSupabaseConfigured) return;
 
+    setSyncStatus('connecting');
     const { data, error } = await supabase.from('auction_records').select('*');
     if (error) {
       console.error('Error fetching Supabase records:', error);
+      setSyncStatus('error');
     } else if (data) {
       const recordsMap = {};
       data.forEach(row => {
         recordsMap[row.player_id.toString()] = { team: row.team, final_price: row.final_price };
       });
       setAuctionRecords(recordsMap);
+      setSyncStatus('connected');
       console.log("Auction records synchronized from Supabase");
     }
-  };
+  }, []);
 
+  const channelRef = useRef(null);
+
+  // 1. Initial Sync & Subscription (Runs ALWAYS on mount)
   useEffect(() => {
-    let channel;
     const isSupabaseConfigured = import.meta.env.VITE_SUPABASE_URL && import.meta.env.VITE_SUPABASE_URL !== 'YOUR_SUPABASE_URL_HERE';
+    
+    if (!isSupabaseConfigured) {
+      console.warn("Supabase not configured. Falling back to LocalStorage.");
+      return;
+    }
 
     const setupSupabase = async () => {
-      if (!isSupabaseConfigured) {
-        console.warn("Supabase not configured. Falling back to LocalStorage.");
-        return;
-      }
-
-      // 1. Fetch initial records
+      // Fetch initial records immediately
       await fetchAuctionRecords();
 
-      // 2. Subscribe to Real-Time Updates & Presence
-      channel = supabase.channel('realtime-auction', {
+      // Subscribe to Real-Time Updates & Presence
+      const channel = supabase.channel(`auction-room-${Math.random().toString(36).substr(2, 5)}`, {
         config: {
           presence: {
             key: myPresenceId,
@@ -136,29 +143,23 @@ function App() {
         },
       });
 
+      channelRef.current = channel;
+
       channel
         .on('postgres_changes', { event: '*', schema: 'public', table: 'auction_records' }, (payload) => {
-          console.log('Realtime change received in auction_records:', payload.eventType, payload);
+          console.log('Realtime change received:', payload.eventType, payload);
           if (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE') {
             const row = payload.new;
-            if (!row || !row.player_id) {
-              console.warn('Received invalid payload for auction_records:', payload);
-              return;
-            }
+            if (!row || !row.player_id) return;
             const pidString = row.player_id.toString();
-            console.log('Syncing INSERT/UPDATE for player:', pidString, row.team, row.final_price);
             setAuctionRecords(prev => ({
               ...prev,
               [pidString]: { team: row.team, final_price: row.final_price }
             }));
           } else if (payload.eventType === 'DELETE') {
             const row = payload.old;
-            if (!row || !row.player_id) {
-              console.warn('Received invalid payload for DELETE:', payload);
-              return;
-            }
+            if (!row || !row.player_id) return;
             const pidString = row.player_id.toString();
-            console.log('Syncing DELETE for player:', pidString);
             setAuctionRecords(prev => {
               const newRecords = { ...prev };
               delete newRecords[pidString];
@@ -168,27 +169,21 @@ function App() {
         })
         .on('presence', { event: 'sync' }, () => {
           const newState = channel.presenceState();
-          console.log('Presence sync:', newState);
           setPresenceState(newState);
         })
-        .on('system', { event: '*' }, (payload) => {
-          console.log('Supabase system event:', payload);
-        })
-        .subscribe(async (status) => {
-          console.log('Supabase Realtime subscription status [auction_records]:', status);
+        .subscribe(async (status, err) => {
+          console.log('Supabase Subscription Status:', status);
+          if (err) console.error('Subscription error:', err);
+          
           setSyncStatus(status === 'SUBSCRIBED' ? 'connected' : 'error');
-          if (status === 'CHANNEL_ERROR') {
-            console.error("Realtime subscription failed! Ensure Realtime is enabled in Supabase Dashboard -> Database -> Replication -> Publications (supabase_realtime).", status);
-          }
-          if (status === 'SUBSCRIBED') {
-            console.log("Successfully subscribed to auction_records channel");
-            if (isAuthenticated && !isAdmin && loginCode) {
-              await channel.track({ 
-                team: loginCode, 
-                online_at: new Date().toISOString(),
-                id: myPresenceId
-              });
-            }
+          
+          if (status === 'SUBSCRIBED' && isAuthenticated && !isAdmin && loginCode) {
+            console.log("Channel joined, tracking presence for:", loginCode);
+            await channel.track({ 
+              team: loginCode, 
+              online_at: new Date().toISOString(),
+              id: myPresenceId
+            });
           }
         });
     };
@@ -196,8 +191,26 @@ function App() {
     setupSupabase();
 
     return () => {
-      if (channel) supabase.removeChannel(channel);
+      if (channelRef.current) {
+        supabase.removeChannel(channelRef.current);
+      }
     };
+  }, []);
+
+  // 2. Presence Tracking (Runs when auth profile changes)
+  useEffect(() => {
+    const trackPresence = async () => {
+      if (channelRef.current && isAuthenticated && !isAdmin && loginCode) {
+        console.log("Tracking presence for team:", loginCode);
+        await channelRef.current.track({ 
+          team: loginCode, 
+          online_at: new Date().toISOString(),
+          id: myPresenceId
+        });
+      }
+    };
+    
+    trackPresence();
   }, [isAuthenticated, isAdmin, loginCode]);
 
   // Also sync to local Excel file (only works on local dev server)
@@ -278,22 +291,24 @@ function App() {
         return;
       }
 
+      // Map 'CSK26' -> 'CSK'
+      const actualTeam = loginCode.replace('26', '');
+
       setIsAuthenticated(true);
       setIsAdmin(false);
       setShowLogin(false);
-      setUserTeam(loginCode);
+      setUserTeam(actualTeam);
       
       // Save session to localStorage
       localStorage.setItem('ipl_auction_session', JSON.stringify({
-        code: loginCode,
+        code: loginCode, // Keep the full code for session restoration
         is_admin: false,
         timestamp: Date.now()
       }));
 
-      // Track presence immediately after login
-      const channel = supabase.getChannels().find(c => c.topic === 'public:auction_records');
-      if (channel) {
-        channel.track({ 
+      // Track presence if channel is ready
+      if (channelRef.current && channelRef.current.state === 'joined') {
+        channelRef.current.track({ 
           team: loginCode, 
           online_at: new Date().toISOString(),
           id: myPresenceId

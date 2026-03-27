@@ -2,7 +2,7 @@
 create table public.auction_records (
   player_id text primary key,
   team text not null,
-  "finalPrice" text not null,
+  final_price text not null,
   created_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
 
