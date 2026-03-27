@@ -14,7 +14,7 @@ export default function Header({ activeTab, setActiveTab, isAdmin, setIsAdmin })
 
   const handleLogin = (e) => {
     e.preventDefault();
-    if (passcode === 'admin123') {
+    if (passcode === 'etc@2027') {
       setIsAdmin(true);
       setActiveTab('admin');
       setShowModal(false);
