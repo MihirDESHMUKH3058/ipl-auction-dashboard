@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-export default function Header({ activeTab, setActiveTab, isAdmin, setIsAdmin, userTeam, setUserTeam, setIsAuthenticated, setShowLogin, refreshData, syncStatus }) {
+export default function Header({ activeTab, setActiveTab, isAdmin, setIsAdmin, userTeam, setUserTeam, setIsAuthenticated, setShowLogin, refreshData, syncStatus, lastSynced }) {
   const handleLogout = () => {
     localStorage.removeItem('ipl_auction_session');
     setIsAuthenticated(false);
@@ -9,6 +9,12 @@ export default function Header({ activeTab, setActiveTab, isAdmin, setIsAdmin, u
     setShowLogin(true);
     setActiveTab('catalog');
   };
+
+  const formatTime = (date) => {
+    if (!date) return 'Never';
+    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+  };
+
   const handleAdminClick = () => {
     if (isAdmin) {
       setActiveTab('admin');
@@ -70,26 +76,33 @@ export default function Header({ activeTab, setActiveTab, isAdmin, setIsAdmin, u
       </div>
 
       <div className="header-right" style={{display: 'flex', alignItems: 'center', gap: '1rem'}}>
-        <div className="sync-status" title={`Real-time Sync: ${syncStatus}`} style={{
-          display: 'flex', 
-          alignItems: 'center', 
-          gap: '5px', 
-          fontSize: '0.7rem',
-          color: syncStatus === 'connected' ? '#48bb78' : '#e53e3e',
-          background: 'rgba(0,0,0,0.3)',
-          padding: '4px 8px',
-          borderRadius: '20px',
-          border: `1px solid ${syncStatus === 'connected' ? '#48bb78' : '#e53e3e'}`
-        }}>
-          <span style={{
-            width: '8px', 
-            height: '8px', 
-            borderRadius: '50%', 
-            backgroundColor: syncStatus === 'connected' ? '#48bb78' : '#e53e3e',
-            display: 'inline-block',
-            boxShadow: syncStatus === 'connected' ? '0 0 5px #48bb78' : 'none'
-          }}></span>
-          {syncStatus === 'connected' ? 'LIVE' : 'OFFLINE'}
+        <div className="status-container" style={{display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '2px'}}>
+          <div className="sync-status" title={`Real-time Sync: ${syncStatus}`} style={{
+            display: 'flex', 
+            alignItems: 'center', 
+            gap: '5px', 
+            fontSize: '0.7rem',
+            color: syncStatus === 'connected' ? '#48bb78' : '#e53e3e',
+            background: 'rgba(0,0,0,0.3)',
+            padding: '4px 8px',
+            borderRadius: '20px',
+            border: `1px solid ${syncStatus === 'connected' ? '#48bb78' : '#e53e3e'}`
+          }}>
+            <span style={{
+              width: '8px', 
+              height: '8px', 
+              borderRadius: '50%', 
+              backgroundColor: syncStatus === 'connected' ? '#48bb78' : '#e53e3e',
+              display: 'inline-block',
+              boxShadow: syncStatus === 'connected' ? '0 0 5px #48bb78' : 'none'
+            }}></span>
+            {syncStatus === 'connected' ? 'LIVE' : 'OFFLINE'}
+          </div>
+          {lastSynced && (
+            <div className="last-synced" style={{fontSize: '0.6rem', color: 'rgba(255,255,255,0.5)'}}>
+              Last Synced: {formatTime(lastSynced)}
+            </div>
+          )}
         </div>
         <button 
           className="nav-tab sync-btn" 

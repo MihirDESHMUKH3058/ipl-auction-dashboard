@@ -98,6 +98,8 @@ function App() {
     localStorage.setItem('auctionState', JSON.stringify(auctionRecords));
   }, [auctionRecords]);
 
+  const [lastSynced, setLastSynced] = useState(null);
+
   // Supabase: Fetch initial data and subscribe to Real-Time updates
   const fetchAuctionRecords = useCallback(async () => {
     const isSupabaseConfigured = import.meta.env.VITE_SUPABASE_URL && import.meta.env.VITE_SUPABASE_URL !== 'YOUR_SUPABASE_URL_HERE';
@@ -115,6 +117,7 @@ function App() {
       });
       setAuctionRecords(recordsMap);
       setSyncStatus('connected');
+      setLastSynced(new Date());
       console.log("Auction records synchronized from Supabase");
     }
   }, []);
@@ -156,6 +159,7 @@ function App() {
               ...prev,
               [pidString]: { team: row.team, final_price: row.final_price }
             }));
+            setLastSynced(new Date());
           } else if (payload.eventType === 'DELETE') {
             const row = payload.old;
             if (!row || !row.player_id) return;
@@ -165,6 +169,7 @@ function App() {
               delete newRecords[pidString];
               return newRecords;
             });
+            setLastSynced(new Date());
           }
         })
         .on('presence', { event: 'sync' }, () => {
@@ -190,12 +195,25 @@ function App() {
 
     setupSupabase();
 
+    // Auto-refresh when tab gains focus (Crucial for mobile)
+    const handleFocus = () => {
+      console.log("Window focused, checking for data updates...");
+      fetchAuctionRecords();
+    };
+
+    window.addEventListener('focus', handleFocus);
+    window.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') handleFocus();
+    });
+
     return () => {
       if (channelRef.current) {
         supabase.removeChannel(channelRef.current);
       }
+      window.removeEventListener('focus', handleFocus);
+      window.removeEventListener('visibilitychange', handleFocus);
     };
-  }, []);
+  }, [fetchAuctionRecords, isAuthenticated, isAdmin, loginCode, myPresenceId]);
 
   // 2. Presence Tracking (Runs when auth profile changes)
   useEffect(() => {
@@ -211,7 +229,7 @@ function App() {
     };
     
     trackPresence();
-  }, [isAuthenticated, isAdmin, loginCode]);
+  }, [isAuthenticated, isAdmin, loginCode, myPresenceId]);
 
   // Also sync to local Excel file (only works on local dev server)
   useEffect(() => {
@@ -394,6 +412,7 @@ function App() {
         setShowLogin={setShowLogin}
         refreshData={fetchAuctionRecords}
         syncStatus={syncStatus}
+        lastSynced={lastSynced}
       />
       
       <main className="main-content">
