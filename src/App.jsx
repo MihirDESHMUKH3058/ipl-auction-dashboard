@@ -13,6 +13,11 @@ function App() {
   const [players, setPlayers] = useState([]);
   const [activeTab, setActiveTab] = useState('catalog');
   const [isAdmin, setIsAdmin] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(() => {
+    return localStorage.getItem('isAuth') === 'true';
+  });
+  const [showLogin, setShowLogin] = useState(!isAuthenticated);
+  const [loginCode, setLoginCode] = useState('');
   
   // Load initial state from localStorage if available
   const [auctionRecords, setAuctionRecords] = useState(() => {
@@ -157,6 +162,66 @@ function App() {
       return true;
     });
   }, [players, filters, auctionRecords]);
+
+  const handleLoginSubmit = (e) => {
+    e.preventDefault();
+    const teamCodes = ['CSK26', 'MI26', 'RCB26', 'KKR26', 'SRH26', 'DC26', 'PBKS26', 'RR26', 'LSG26', 'GT26'];
+    const adminCodes = ['IPL_ADMIN_2026', 'etc@2027'];
+
+    if (adminCodes.includes(loginCode)) {
+      setIsAuthenticated(true);
+      setIsAdmin(true);
+      localStorage.setItem('isAuth', 'true');
+      localStorage.setItem('isAdmin', 'true');
+      setShowLogin(false);
+    } else if (teamCodes.includes(loginCode)) {
+      setIsAuthenticated(true);
+      setIsAdmin(false);
+      localStorage.setItem('isAuth', 'true');
+      localStorage.setItem('isAdmin', 'false');
+      setShowLogin(false);
+    } else {
+      alert("Invalid Access Code!");
+    }
+  };
+
+  // Sync admin state from localStorage on load
+  useEffect(() => {
+    if (isAuthenticated) {
+      const savedAdmin = localStorage.getItem('isAdmin') === 'true';
+      setIsAdmin(savedAdmin);
+    }
+  }, [isAuthenticated]);
+
+  if (showLogin) {
+    return (
+      <div className="login-screen">
+        <div className="login-card">
+          <div className="login-header">
+            <h1 className="login-title">IPL 2026</h1>
+            <p className="login-subtitle">College Auction Portal</p>
+          </div>
+          <form onSubmit={handleLoginSubmit}>
+            <div className="login-field">
+              <label htmlFor="access-code">Access Code</label>
+              <input 
+                id="access-code"
+                type="password" 
+                placeholder="Enter Team or Admin Code"
+                value={loginCode}
+                onChange={(e) => setLoginCode(e.target.value)}
+                autoFocus
+              />
+            </div>
+            <button type="submit" className="login-submit">Enter Dashboard</button>
+          </form>
+          <div className="login-footer">
+            Access restricted to authorized team representatives and administrators.
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="app-container">

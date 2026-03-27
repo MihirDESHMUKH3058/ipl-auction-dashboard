@@ -1,26 +1,11 @@
 import React, { useState } from 'react';
 
-export default function Header({ activeTab, setActiveTab, isAdmin, setIsAdmin }) {
-  const [showModal, setShowModal] = useState(false);
-  const [passcode, setPasscode] = useState('');
-
+export default function Header({ activeTab, setActiveTab, isAdmin }) {
   const handleAdminClick = () => {
     if (isAdmin) {
       setActiveTab('admin');
     } else {
-      setShowModal(true);
-    }
-  };
-
-  const handleLogin = (e) => {
-    e.preventDefault();
-    if (passcode === 'etc@2027') {
-      setIsAdmin(true);
-      setActiveTab('admin');
-      setShowModal(false);
-      setPasscode('');
-    } else {
-      alert("Incorrect passcode. Access denied.");
+      alert("Admin access required. Please log in with an admin code.");
     }
   };
 
@@ -29,7 +14,7 @@ export default function Header({ activeTab, setActiveTab, isAdmin, setIsAdmin })
       <div className="header-left">
         <div className="title-section">
           <h1 className="app-title">IPL 2026</h1>
-          <div className="app-subtitle">College Auction</div>
+          <div className="app-subtitle">College Auction Portal</div>
         </div>
         
         <div className="nav-tabs">
@@ -83,30 +68,6 @@ export default function Header({ activeTab, setActiveTab, isAdmin, setIsAdmin })
           </div>
         </div>
       </div>
-
-      {showModal && (
-        <div className="modal-overlay">
-          <div className="modal-content">
-            <h2 className="modal-title">Admin Access</h2>
-            <p style={{marginBottom: '1rem', color: 'var(--text-secondary)'}}>Enter the passcode to unlock auction controls.</p>
-            <form onSubmit={handleLogin}>
-              <input 
-                id="admin-passcode-input"
-                type="password" 
-                className="modal-input" 
-                placeholder="Passcode"
-                value={passcode}
-                onChange={(e) => setPasscode(e.target.value)}
-                autoFocus
-              />
-              <div className="modal-actions">
-                <button type="button" className="modal-btn secondary" onClick={() => setShowModal(false)}>Cancel</button>
-                <button type="submit" className="modal-btn primary">Unlock</button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
     </header>
   );
 }
