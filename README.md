@@ -1,16 +1,30 @@
-# React + Vite
+# IPL Auction Web App — Production Ready
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A full-stack cricket auction platform with real-time bidding, premium animations, and robust admin controls.
 
-Currently, two official plugins are available:
+## Tech Stack
+- **Frontend**: React + Vite, TailwindCSS, Framer Motion, Zustand
+- **Backend**: Node.js + Express, Socket.io
+- **Database**: Supabase (PostgreSQL + Realtime + Auth)
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Setup Instructions
 
-## React Compiler
+### 1. Supabase Setup
+1. Create a new Supabase project.
+2. Run the SQL migrations in `supabase/migrations/` in order (001, 002, 003).
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+### 2. Local Development
+1. Clone the repo.
+2. Create a `.env` file in the root based on `.env.example`.
+3. Install dependencies: `npm install`
+4. Run both client and server: `npm run dev`
 
-## Expanding the ESLint configuration
+### 3. Deployment
+- **Frontend**: Connect the `client/` directory to Vercel.
+- **Backend**: Connect the `server/` directory to Railway or Render.
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## Features
+- **Real-time Bidding**: Sub-100ms latency via Socket.io.
+- **Role-based Access**: Admin, Team Owner, and Viewer roles.
+- **Premium UI**: Framer Motion animations and dark-mode aesthetic.
+- **Admin Toolkit**: Start/Pause auction, CSV upload, and analytics.

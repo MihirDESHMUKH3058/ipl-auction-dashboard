@@ -1,0 +1,27 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-background text-white font-sans antialiased;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-display font-bold;
+  }
+}
+
+@layer components {
+  .glass-card {
+    @apply bg-white/5 backdrop-blur-md border border-white/10 rounded-xl overflow-hidden;
+  }
+  
+  .btn-primary {
+    @apply px-6 py-2 bg-primary text-background font-bold rounded-lg transition-all hover:scale-105 active:scale-95 disabled:opacity-50 disabled:scale-100;
+  }
+  
+  .input-field {
+    @apply w-full bg-secondary border border-white/10 rounded-lg px-4 py-2 focus:ring-2 focus:ring-primary focus:border-transparent outline-none;
+  }
+}
