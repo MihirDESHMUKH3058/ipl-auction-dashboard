@@ -38,7 +38,12 @@ export default function AuctionAdminPanel({ players, auctionRecords, setAuctionR
         team: selectedTeam,
         finalPrice: priceString
       });
-      if (error) console.error("Supabase insert error:", error);
+      if (error) {
+        console.error("Supabase insert error:", error);
+        alert("⚠️ DATABASE UPDATE FAILED: Player not stored in Supabase. Check internet connection.");
+      } else {
+        console.log("Successfully stored in Supabase");
+      }
     }
     
     // Clear form

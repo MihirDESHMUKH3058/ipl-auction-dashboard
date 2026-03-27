@@ -6,16 +6,32 @@ import AuctionAdminPanel from './components/AuctionAdminPanel';
 import AnonymousAuction from './components/AnonymousAuction';
 import TeamRosters from './components/TeamRosters';
 import PlayerBags from './components/PlayerBags';
+import MyTeam from './components/MyTeam';
 import { supabase } from './supabaseClient';
 import './App.css';
 
 function App() {
   const [players, setPlayers] = useState([]);
   const [activeTab, setActiveTab] = useState('catalog');
-  const [isAdmin, setIsAdmin] = useState(false);
+  
+  // Refresh session timestamp on activity (tab change)
+  useEffect(() => {
+    const savedSession = localStorage.getItem('ipl_auction_session');
+    if (savedSession) {
+      try {
+        const session = JSON.parse(savedSession);
+        session.timestamp = Date.now();
+        localStorage.setItem('ipl_auction_session', JSON.stringify(session));
+      } catch (e) {
+        console.error("Failed to refresh session timestamp", e);
+      }
+    }
+  }, [activeTab]);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [showLogin, setShowLogin] = useState(!isAuthenticated);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [showLogin, setShowLogin] = useState(true);
   const [loginCode, setLoginCode] = useState('');
+  const [userTeam, setUserTeam] = useState(null); // Consolidated team state
   const [showPasswordStep, setShowPasswordStep] = useState(false);
   const [adminPassword, setAdminPassword] = useState('');
   const [presenceState, setPresenceState] = useState({});
@@ -37,6 +53,35 @@ function App() {
     price: 'All',
     availability: 'All'
   });
+
+  // 1. Session Persistence Check on Mount
+  useEffect(() => {
+    const savedSession = localStorage.getItem('ipl_auction_session');
+    if (savedSession) {
+      try {
+        const { code, is_admin, timestamp } = JSON.parse(savedSession);
+        const now = Date.now();
+        const thirtyMinutes = 30 * 60 * 1000;
+
+        if (now - timestamp < thirtyMinutes) {
+          console.log("Restoring session for:", code);
+          setLoginCode(code);
+          setIsAdmin(is_admin);
+          setIsAuthenticated(true);
+          setShowLogin(false);
+          if (!is_admin) {
+            setUserTeam(code);
+          }
+        } else {
+          console.log("Session expired.");
+          localStorage.removeItem('ipl_auction_session');
+        }
+      } catch (e) {
+        console.error("Failed to parse saved session", e);
+        localStorage.removeItem('ipl_auction_session');
+      }
+    }
+  }, []);
 
   useEffect(() => {
     fetch(`${import.meta.env.BASE_URL}players.json`)
@@ -112,6 +157,9 @@ function App() {
         })
         .subscribe(async (status) => {
           console.log('Supabase Realtime subscription status:', status);
+          if (status === 'CHANNEL_ERROR') {
+            console.error("Realtime subscription failed! Trying to reconnect...");
+          }
           if (status === 'SUBSCRIBED' && isAuthenticated && !isAdmin && loginCode) {
             // Track presence if already authenticated as a team
             await channel.track({ 
@@ -206,7 +254,15 @@ function App() {
       setIsAuthenticated(true);
       setIsAdmin(false);
       setShowLogin(false);
+      setUserTeam(loginCode);
       
+      // Save session to localStorage
+      localStorage.setItem('ipl_auction_session', JSON.stringify({
+        code: loginCode,
+        is_admin: false,
+        timestamp: Date.now()
+      }));
+
       // Track presence immediately after login
       const channel = supabase.getChannels().find(c => c.topic === 'public:auction_records');
       if (channel) {
@@ -227,6 +283,13 @@ function App() {
       setIsAuthenticated(true);
       setIsAdmin(true);
       setShowLogin(false);
+      
+      // Save session to localStorage
+      localStorage.setItem('ipl_auction_session', JSON.stringify({
+        code: 'ADMIN',
+        is_admin: true,
+        timestamp: Date.now()
+      }));
     } else {
       alert("Incorrect Admin Password!");
     }
@@ -283,6 +346,10 @@ function App() {
         setActiveTab={setActiveTab} 
         isAdmin={isAdmin}
         setIsAdmin={setIsAdmin}
+        userTeam={userTeam}
+        setUserTeam={setUserTeam}
+        setIsAuthenticated={setIsAuthenticated}
+        setShowLogin={setShowLogin}
       />
       
       <main className="main-content">
@@ -314,6 +381,13 @@ function App() {
             auctionRecords={auctionRecords} 
             setAuctionRecords={setAuctionRecords} 
             isAdmin={isAdmin}
+            userTeam={userTeam}
+          />
+        ) : activeTab === 'myteam' ? (
+          <MyTeam 
+            players={players} 
+            auctionRecords={auctionRecords} 
+            userTeam={userTeam}
           />
         ) : activeTab === 'bags' ? (
           <PlayerBags 

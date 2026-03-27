@@ -1,6 +1,14 @@
 import React, { useState } from 'react';
 
-export default function Header({ activeTab, setActiveTab, isAdmin }) {
+export default function Header({ activeTab, setActiveTab, isAdmin, setIsAdmin, userTeam, setUserTeam, setIsAuthenticated, setShowLogin }) {
+  const handleLogout = () => {
+    localStorage.removeItem('ipl_auction_session');
+    setIsAuthenticated(false);
+    setIsAdmin(false);
+    setUserTeam(null);
+    setShowLogin(true);
+    setActiveTab('catalog');
+  };
   const handleAdminClick = () => {
     if (isAdmin) {
       setActiveTab('admin');
@@ -24,6 +32,14 @@ export default function Header({ activeTab, setActiveTab, isAdmin }) {
           >
             Player Catalog
           </button>
+          {userTeam && (
+            <button 
+              className={`nav-tab ${activeTab === 'myteam' ? 'active' : ''}`}
+              onClick={() => setActiveTab('myteam')}
+            >
+              My Team
+            </button>
+          )}
           {isAdmin && (
             <button 
               className={`nav-tab ${activeTab === 'admin' ? 'active' : ''}`}
@@ -52,7 +68,13 @@ export default function Header({ activeTab, setActiveTab, isAdmin }) {
           </button>
         </div>
       </div>
-      
+
+      <div className="header-right" style={{display: 'flex', alignItems: 'center', gap: '1rem'}}>
+        {userTeam && <div className="user-badge team" style={{backgroundColor: `var(--${userTeam.toLowerCase()})`, padding: '4px 8px', borderRadius: '4px', fontSize: '0.8rem', fontWeight: 'bold'}}>{userTeam}</div>}
+        {isAdmin && <div className="user-badge admin" style={{backgroundColor: '#e53e3e', padding: '4px 8px', borderRadius: '4px', fontSize: '0.8rem', fontWeight: 'bold'}}>ADMIN</div>}
+        <button className="nav-tab logout-btn" onClick={handleLogout} style={{color: '#ff4d4d'}}>Logout</button>
+      </div>
+
       <div className="rules-tracker">
         <div className="rules-title">Mandatory Squad Rules</div>
         <div className="rules-list">

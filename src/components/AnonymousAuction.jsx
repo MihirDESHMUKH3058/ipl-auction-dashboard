@@ -2,11 +2,10 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { supabase } from '../supabaseClient';
 import './AnonymousAuction.css';
 
-export default function AnonymousAuction({ players, auctionRecords, setAuctionRecords, isAdmin }) {
+export default function AnonymousAuction({ players, auctionRecords, setAuctionRecords, isAdmin, userTeam }) {
   const teams = ['CSK', 'MI', 'RCB', 'KKR', 'DC', 'SRH', 'RR', 'PBKS', 'LSG', 'GT'];
   
-  // State for user identity
-  const [userTeam, setUserTeam] = useState(localStorage.getItem('userTeam') || null);
+  // Removed local userTeam state, using prop from App.jsx
 
   // State from Supabase
   const [activePlayerId, setActivePlayerId] = useState(null);
@@ -164,25 +163,24 @@ export default function AnonymousAuction({ players, auctionRecords, setAuctionRe
     if (!activePlayer) return;
     const priceString = `₹${amount},00,000`;
     
+    console.log(`Confirming win: Player ${activePlayer.id} to ${winningTeam} for ${priceString}`);
+
     const { error } = await supabase.from('auction_records').upsert({
       player_id: activePlayer.id.toString(),
       team: winningTeam,
       finalPrice: priceString
     });
 
-    if (!error) {
-      await supabase.from('anonymous_auction_settings').update({ active_player_id: null, bids_revealed: false, end_time: null }).eq('id', 1);
-      await supabase.from('anonymous_bids').delete().eq('player_id', activePlayer.id);
-      setAuctionRecords(prev => ({
-        ...prev,
-        [activePlayer.id]: { team: winningTeam, finalPrice: priceString }
-      }));
+    if (error) {
+      console.error("Error confirming winner in Supabase:", error);
+      alert("Failed to confirm winner in database! Check console.");
+      return;
     }
-  };
 
-  const handleSetTeam = (team) => {
-    setUserTeam(team);
-    localStorage.setItem('userTeam', team);
+    await supabase.from('anonymous_auction_settings').update({ active_player_id: null, bids_revealed: false, end_time: null }).eq('id', 1);
+    await supabase.from('anonymous_bids').delete().eq('player_id', activePlayer.id);
+    
+    // The real-time subscription in App.jsx will handle the local state update
   };
 
   const handleSubmitBid = async () => {
