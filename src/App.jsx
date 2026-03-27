@@ -18,6 +18,8 @@ function App() {
   const [loginCode, setLoginCode] = useState('');
   const [showPasswordStep, setShowPasswordStep] = useState(false);
   const [adminPassword, setAdminPassword] = useState('');
+  const [presenceState, setPresenceState] = useState({});
+  const [myPresenceId] = useState(() => Math.random().toString(36).substr(2, 9));
   
   // Load initial state from localStorage if available
   const [auctionRecords, setAuctionRecords] = useState(() => {
@@ -72,9 +74,16 @@ function App() {
         setAuctionRecords(recordsMap);
       }
 
-      // 2. Subscribe to Real-Time Updates
-      channel = supabase
-        .channel('public:auction_records')
+      // 2. Subscribe to Real-Time Updates & Presence
+      channel = supabase.channel('public:auction_records', {
+        config: {
+          presence: {
+            key: myPresenceId,
+          },
+        },
+      });
+
+      channel
         .on('postgres_changes', { event: '*', schema: 'public', table: 'auction_records' }, (payload) => {
           console.log('Realtime change received!', payload.eventType, payload);
           if (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE') {
@@ -96,8 +105,21 @@ function App() {
             });
           }
         })
-        .subscribe((status) => {
+        .on('presence', { event: 'sync' }, () => {
+          const newState = channel.presenceState();
+          console.log('Presence sync:', newState);
+          setPresenceState(newState);
+        })
+        .subscribe(async (status) => {
           console.log('Supabase Realtime subscription status:', status);
+          if (status === 'SUBSCRIBED' && isAuthenticated && !isAdmin && loginCode) {
+            // Track presence if already authenticated as a team
+            await channel.track({ 
+              team: loginCode, 
+              online_at: new Date().toISOString(),
+              id: myPresenceId
+            });
+          }
         });
     };
 
@@ -171,9 +193,29 @@ function App() {
     if (loginCode === 'IPL_ADMIN_2026') {
       setShowPasswordStep(true);
     } else if (teamCodes.includes(loginCode)) {
+      // Check if team is already joined by someone else
+      const isTeamActive = Object.values(presenceState).some(presences => 
+        presences.some(p => p.team === loginCode && p.id !== myPresenceId)
+      );
+
+      if (isTeamActive) {
+        alert(`Team ${loginCode} is already joined by another user! Only one person per team can join.`);
+        return;
+      }
+
       setIsAuthenticated(true);
       setIsAdmin(false);
       setShowLogin(false);
+      
+      // Track presence immediately after login
+      const channel = supabase.getChannels().find(c => c.topic === 'public:auction_records');
+      if (channel) {
+        channel.track({ 
+          team: loginCode, 
+          online_at: new Date().toISOString(),
+          id: myPresenceId
+        });
+      }
     } else {
       alert("Invalid Access Code!");
     }

@@ -190,3 +190,14 @@
   text-shadow: 0 0 10px currentColor;
   font-size: 1.4rem;
 }
+
+/* Mobile Optimizations */
+@media (max-width: 640px) {
+  .sold-overlay {
+    padding: 0.4rem 1rem;
+    font-size: 1rem;
+    border-width: 2px;
+    letter-spacing: 1px;
+    box-shadow: 0 0 10px rgba(255, 0, 122, 0.6);
+  }
+}
