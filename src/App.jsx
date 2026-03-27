@@ -11,6 +11,7 @@ import { supabase } from './supabaseClient';
 import './App.css';
 
 function App() {
+  const [syncStatus, setSyncStatus] = useState('connecting');
   const [players, setPlayers] = useState([]);
   const [activeTab, setActiveTab] = useState('catalog');
   
@@ -227,8 +228,13 @@ function App() {
 
   const parsePriceToLakhs = (priceStr) => {
     if (!priceStr) return 0;
-    const numStr = priceStr.toString().replace(/[^0-9]/g, ''); // Ensure priceStr is a string
-    return parseInt(numStr, 10) / 100000;
+    try {
+      const numStr = priceStr.toString().replace(/[^0-9]/g, '');
+      return parseInt(numStr, 10) / 100000;
+    } catch (e) {
+      console.warn("Pricing error:", e);
+      return 0;
+    }
   };
 
   const filteredPlayers = useMemo(() => {

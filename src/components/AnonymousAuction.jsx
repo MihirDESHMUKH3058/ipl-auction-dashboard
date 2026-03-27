@@ -49,7 +49,8 @@ export default function AnonymousAuction({ players, auctionRecords, setAuctionRe
         .single();
       
       if (settings) {
-        setActivePlayerId(settings.active_player_id ? settings.active_player_id.toString() : null);
+        const sid = settings.active_player_id ? settings.active_player_id.toString() : null;
+        if (sid !== activePlayerId) setActivePlayerId(sid);
         setBidsRevealed(settings.bids_revealed);
         setEndTime(settings.end_time ? new Date(settings.end_time) : null);
       }
@@ -59,7 +60,8 @@ export default function AnonymousAuction({ players, auctionRecords, setAuctionRe
         .on('postgres_changes', { event: '*', schema: 'public', table: 'anonymous_auction_settings' }, payload => {
           console.log('Realtime settings change:', payload.eventType, payload.new);
           if (payload.new) {
-            setActivePlayerId(payload.new.active_player_id ? payload.new.active_player_id.toString() : null);
+            const newId = payload.new.active_player_id ? payload.new.active_player_id.toString() : null;
+            if (newId !== activePlayerId) setActivePlayerId(newId);
             setBidsRevealed(payload.new.bids_revealed);
             setEndTime(payload.new.end_time ? new Date(payload.new.end_time) : null);
           }
