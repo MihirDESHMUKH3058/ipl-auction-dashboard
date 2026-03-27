@@ -18,6 +18,8 @@ function App() {
   });
   const [showLogin, setShowLogin] = useState(!isAuthenticated);
   const [loginCode, setLoginCode] = useState('');
+  const [showPasswordStep, setShowPasswordStep] = useState(false);
+  const [adminPassword, setAdminPassword] = useState('');
   
   // Load initial state from localStorage if available
   const [auctionRecords, setAuctionRecords] = useState(() => {
@@ -168,12 +170,8 @@ function App() {
     const teamCodes = ['CSK26', 'MI26', 'RCB26', 'KKR26', 'SRH26', 'DC26', 'PBKS26', 'RR26', 'LSG26', 'GT26'];
     const adminCodes = ['IPL_ADMIN_2026', 'etc@2027'];
 
-    if (adminCodes.includes(loginCode)) {
-      setIsAuthenticated(true);
-      setIsAdmin(true);
-      localStorage.setItem('isAuth', 'true');
-      localStorage.setItem('isAdmin', 'true');
-      setShowLogin(false);
+    if (loginCode === 'IPL_ADMIN_2026') {
+      setShowPasswordStep(true);
     } else if (teamCodes.includes(loginCode)) {
       setIsAuthenticated(true);
       setIsAdmin(false);
@@ -182,6 +180,19 @@ function App() {
       setShowLogin(false);
     } else {
       alert("Invalid Access Code!");
+    }
+  };
+
+  const handlePasswordSubmit = (e) => {
+    e.preventDefault();
+    if (adminPassword === 'etc@2027') {
+      setIsAuthenticated(true);
+      setIsAdmin(true);
+      localStorage.setItem('isAuth', 'true');
+      localStorage.setItem('isAdmin', 'true');
+      setShowLogin(false);
+    } else {
+      alert("Incorrect Admin Password!");
     }
   };
 
@@ -201,19 +212,31 @@ function App() {
             <h1 className="login-title">IPL 2026</h1>
             <p className="login-subtitle">College Auction Portal</p>
           </div>
-          <form onSubmit={handleLoginSubmit}>
+          <form onSubmit={showPasswordStep ? handlePasswordSubmit : handleLoginSubmit}>
             <div className="login-field">
-              <label htmlFor="access-code">Access Code</label>
+              <label htmlFor="access-code">{showPasswordStep ? "Admin Password" : "Access Code"}</label>
               <input 
                 id="access-code"
                 type="password" 
-                placeholder="Enter Team or Admin Code"
-                value={loginCode}
-                onChange={(e) => setLoginCode(e.target.value)}
+                placeholder={showPasswordStep ? "Enter Password" : "Enter Team or Admin Code"}
+                value={showPasswordStep ? adminPassword : loginCode}
+                onChange={(e) => showPasswordStep ? setAdminPassword(e.target.value) : setLoginCode(e.target.value)}
                 autoFocus
+                key={showPasswordStep ? "password-input" : "code-input"}
               />
             </div>
-            <button type="submit" className="login-submit">Enter Dashboard</button>
+            <button type="submit" className="login-submit">
+              {showPasswordStep ? "Unlock Admin Access" : "Enter Dashboard"}
+            </button>
+            {showPasswordStep && (
+              <button 
+                type="button" 
+                className="login-back" 
+                onClick={() => { setShowPasswordStep(false); setAdminPassword(''); }}
+              >
+                Back to Access Code
+              </button>
+            )}
           </form>
           <div className="login-footer">
             Access restricted to authorized team representatives and administrators.
