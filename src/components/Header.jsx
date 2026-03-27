@@ -24,12 +24,14 @@ export default function Header({ activeTab, setActiveTab, isAdmin }) {
           >
             Player Catalog
           </button>
-          <button 
-            className={`nav-tab ${activeTab === 'admin' ? 'active' : ''}`}
-            onClick={handleAdminClick}
-          >
-            {isAdmin ? "Auction Admin" : "Auction Admin 🔒"}
-          </button>
+          {isAdmin && (
+            <button 
+              className={`nav-tab ${activeTab === 'admin' ? 'active' : ''}`}
+              onClick={handleAdminClick}
+            >
+              Auction Admin
+            </button>
+          )}
           <button 
             className={`nav-tab ${activeTab === 'anonymous' ? 'active' : ''}`}
             onClick={() => setActiveTab('anonymous')}
