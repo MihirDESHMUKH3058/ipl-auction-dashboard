@@ -30,7 +30,12 @@ class SocketClient {
   }
 
   setupListeners() {
+    this.socket.on('auction:sync', (state) => {
+      useAuctionStore.getState().setAuctionState(state);
+    });
+
     this.socket.on('bid:new', (bid) => {
+
       useAuctionStore.getState().addBid(bid);
     });
 
@@ -75,9 +80,11 @@ class SocketClient {
     });
   }
 
-  startAuction(playerId, basePrice) {
-    this.socket.emit('auction:start', { playerId, basePrice });
+  startAuction(player) {
+    this.socket.emit('auction:start', player);
   }
+
+
 
   beginBidding() {
     this.socket.emit('auction:begin_bidding');

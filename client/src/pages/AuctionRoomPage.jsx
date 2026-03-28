@@ -7,8 +7,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 const AuctionRoomPage = () => {
   const { currentPlayer, bids, timer, status } = useAuctionStore();
-  const { user, loading: authLoading } = useAuthStore();
+  const { user, role, loading: authLoading } = useAuthStore();
   const { teams, loading: teamsLoading } = useTeamStore();
+
   const [lastBid, setLastBid] = useState(null);
 
   const [view, setView] = useState('podium'); // podium, draft
@@ -23,7 +24,8 @@ const AuctionRoomPage = () => {
   }, [bids]);
 
   // Find current team's data with robust null checking
-  const currentTeam = user ? (teams.find(t => String(t.id) === String(user.id).replace('team-', '')) || { name: user.role === 'admin' ? 'Auction Admin' : 'Unknown Franchise', budget: 1000000000, spent: 0, players: [] }) : { name: 'Guest', budget: 1000000000, spent: 0, players: [] };
+  const currentTeam = user ? (teams.find(t => String(t.id) === String(user.id).replace('team-', '')) || { name: role === 'admin' ? 'Auction Admin' : 'Unknown Franchise', budget: 1000000000, spent: 0, players: [] }) : { name: 'Guest', budget: 1000000000, spent: 0, players: [] };
+
 
   if (authLoading || (teamsLoading && teams.length === 0)) {
     return (
@@ -47,8 +49,9 @@ const AuctionRoomPage = () => {
               <span className="text-[10px] font-headline font-black text-primary uppercase tracking-[0.2em]">Logged In As: {currentTeam.name}</span>
               <div className="flex items-center gap-2">
                 <span className="inline-block w-2 h-2 rounded-full bg-tertiary animate-pulse"></span>
-                <span className="text-white font-headline font-black text-sm uppercase italic tracking-widest">{user?.role === 'admin' ? 'Auctioneer Control' : currentTeam.shortName || 'Franchise'}</span>
+                <span className="text-white font-headline font-black text-sm uppercase italic tracking-widest">{role === 'admin' ? 'Auctioneer Control' : currentTeam.shortName || 'Franchise'}</span>
               </div>
+
             </div>
           </div>
           <div className="flex h-10 w-10 rounded-full bg-surface-container border border-white/5 items-center justify-center text-primary shadow-lg shadow-primary/20">
@@ -83,8 +86,9 @@ const AuctionRoomPage = () => {
             <span className="text-[10px] font-headline font-black text-primary uppercase tracking-[0.2em]">Logged In As: {currentTeam.name}</span>
             <div className="flex items-center gap-2">
               <span className="inline-block w-2 h-2 rounded-full bg-tertiary animate-pulse"></span>
-              <span className="text-white font-headline font-black text-sm uppercase italic tracking-widest">{user?.role === 'admin' ? 'Auctioneer Control' : currentTeam.shortName || 'Franchise'}</span>
+              <span className="text-white font-headline font-black text-sm uppercase italic tracking-widest">{role === 'admin' ? 'Auctioneer Control' : currentTeam.shortName || 'Franchise'}</span>
             </div>
+
           </div>
         </div>
 
@@ -163,10 +167,10 @@ const AuctionRoomPage = () => {
                     key={lastBid?.amount + '_text'}
                     initial={{ y: 10, opacity: 0 }}
                     animate={{ y: 0, opacity: 1 }}
-                    className="font-data text-9xl leading-none gold-gradient bg-clip-text text-transparent drop-shadow-[0_10px_30px_rgba(255,185,85,0.4)] relative z-10"
+                    className="font-data text-6xl sm:text-7xl md:text-8xl lg:text-9xl leading-none gold-gradient bg-clip-text text-transparent drop-shadow-[0_10px_30px_rgba(255,185,85,0.4)] relative z-10"
                   >
                     {formatCurrency(lastBid?.amount || currentPlayer.base_price)}
-                    <span className="text-3xl font-headline font-black ml-4 text-on-surface">CR</span>
+                    <span className="text-xl md:text-2xl lg:text-3xl font-headline font-black ml-4 text-on-surface">CR</span>
                   </motion.h3>
                 </div>
               </div>
@@ -191,8 +195,9 @@ const AuctionRoomPage = () => {
               </div>
 
               {/* User Controls */}
-              {user?.role === 'team' && (
+              {role === 'team' && (
                 <div className="flex justify-center w-full">
+
                   <div className="relative group">
                     <AnimatePresence>
                       {String(lastBid?.team_id) === String(currentTeam.id) && (
@@ -234,17 +239,17 @@ const AuctionRoomPage = () => {
                 <div className="w-24 h-24 rounded-full bg-white/5 border border-white/10 flex items-center justify-center mx-auto stadium-glow">
                   <span className="material-symbols-outlined text-5xl text-primary" style={{ fontVariationSettings: "'FILL' 1" }}>groups</span>
                 </div>
-                <h4 className="font-headline font-black text-2xl uppercase tracking-tighter text-white">
+                <h4 className="font-headline font-black text-lg md:text-xl lg:text-2xl uppercase tracking-tighter text-white truncate px-2">
                   {lastBid?.team_name || 'OPEN FOR BIDS'}
                 </h4>
                 <div className="pt-6 border-t border-white/5 space-y-3">
-                  <div className="flex justify-between items-center px-2">
-                    <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Purse Left</span>
-                    <span className="font-data text-xl text-tertiary">₹ {formatCurrency(currentTeam.budget - currentTeam.spent)} Cr</span>
+                  <div className="flex flex-col sm:flex-row justify-between items-center px-2 gap-1 text-center sm:text-left">
+                    <span className="text-[8px] md:text-[10px] font-bold text-slate-500 uppercase tracking-widest whitespace-nowrap">Purse Left</span>
+                    <span className="font-data text-base md:text-lg lg:text-xl text-tertiary whitespace-nowrap">₹ {formatCurrency(currentTeam.budget - currentTeam.spent)} Cr</span>
                   </div>
-                  <div className="flex justify-between items-center px-2">
-                    <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Squad Strength</span>
-                    <span className="font-data text-xl text-white">{currentTeam.players.length} / 25</span>
+                  <div className="flex flex-col sm:flex-row justify-between items-center px-2 gap-1 text-center sm:text-left">
+                    <span className="text-[8px] md:text-[10px] font-bold text-slate-500 uppercase tracking-widest whitespace-nowrap">Squad Strength</span>
+                    <span className="font-data text-base md:text-lg lg:text-xl text-white whitespace-nowrap">{currentTeam.players.length} / 25</span>
                   </div>
                 </div>
               </div>

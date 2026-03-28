@@ -18,7 +18,7 @@ const AdminTeamOverview = ({ teams, formatCurrency }) => {
                   {team.shortName}
                 </div>
                 <div>
-                  <h4 className="font-headline font-black text-white uppercase italic leading-none truncate max-w-[150px]">{team.name}</h4>
+                  <h4 className="font-headline font-black text-white uppercase italic leading-none truncate max-w-[100px] sm:max-w-[150px]">{team.name}</h4>
                   <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mt-1">Franchise Account</p>
                 </div>
               </div>
@@ -36,19 +36,19 @@ const AdminTeamOverview = ({ teams, formatCurrency }) => {
                   className="h-full bg-gradient-to-r from-primary to-amber-500 shadow-[0_0_12px_rgba(255,185,85,0.4)]" 
                 />
               </div>
-              <div className="flex justify-between text-xs font-data text-white px-1">
+              <div className="flex flex-col gap-1 text-xs font-data text-white px-1">
                 <span className="text-tertiary">PURSE LEFT: ₹{formatCurrency(team.budget - team.spent)}Cr</span>
               </div>
             </div>
 
             <div className="pt-6 border-t border-white/5 grid grid-cols-2 gap-4">
-              <div className="bg-surface-container-low p-3 rounded-2xl border border-white/5 text-center">
-                <p className="text-[9px] font-bold text-slate-500 uppercase">Squad Count</p>
-                <p className="font-data text-xl text-white">{team.players.length}</p>
+              <div className="bg-surface-container-low p-2 sm:p-3 rounded-2xl border border-white/5 text-center">
+                <p className="text-[8px] sm:text-[9px] font-bold text-slate-500 uppercase">Squad Count</p>
+                <p className="font-data text-lg sm:text-xl text-white">{team.players.length}</p>
               </div>
-              <div className="bg-surface-container-low p-3 rounded-2xl border border-white/5 text-center">
-                <p className="text-[9px] font-bold text-slate-500 uppercase">Spots Open</p>
-                <p className="font-data text-xl text-primary">{25 - team.players.length}</p>
+              <div className="bg-surface-container-low p-2 sm:p-3 rounded-2xl border border-white/5 text-center">
+                <p className="text-[8px] sm:text-[9px] font-bold text-slate-500 uppercase">Spots Open</p>
+                <p className="font-data text-lg sm:text-xl text-primary">{25 - team.players.length}</p>
               </div>
             </div>
 

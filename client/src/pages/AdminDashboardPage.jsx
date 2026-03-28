@@ -71,7 +71,7 @@ const AdminDashboardPage = () => {
     if (upcomingPlayers.length > 0) {
       const player = upcomingPlayers[0];
       setCurrentPlayer(player);
-      socketClient.startAuction(player.id, player.base_price);
+      socketClient.startAuction(player);
     } else {
       showNotification("PLAYER POOL EXHAUSTED", 'error');
     }
@@ -79,9 +79,10 @@ const AdminDashboardPage = () => {
 
   const onBringToPodium = (player) => {
     setCurrentPlayer(player);
-    socketClient.startAuction(player.id, player.base_price);
+    socketClient.startAuction(player);
     showNotification(`${player.name} DEPLOYED TO PODIUM`, 'info');
   };
+
 
   const onBeginBidding = () => {
     socketClient.beginBidding();

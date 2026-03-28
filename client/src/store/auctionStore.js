@@ -46,12 +46,13 @@ export const useAuctionStore = create((set, get) => ({
 
   manualBid: async (amountCr) => {
     const { currentPlayer } = get();
-    if (!currentPlayer) return;
+    if (!currentPlayer || !amountCr || isNaN(parseFloat(amountCr))) return;
 
     const amount = parseFloat(amountCr) * 10000000;
     const { socketClient } = await import('../lib/socketClient');
     socketClient.placeBid(currentPlayer.id, amount, 'ADMIN OVERRIDE', 'admin', 'absolute');
   },
+
 
   updateLocalTimer: (time) => set({ timer: time }),
 
@@ -77,5 +78,20 @@ export const useAuctionStore = create((set, get) => ({
     set({ status: 'unsold' });
   },
 
+  setAuctionState: (state) => {
+    const { status, currentPlayer, currentBid, currentTimer, highestBidder } = state;
+    set({
+      status: status === 'time_expired' ? 'expired' : (status || 'idle'),
+      currentPlayer: currentPlayer || null,
+      bids: highestBidder ? [{
+        amount: currentBid,
+        team_id: highestBidder.id,
+        team_name: highestBidder.name
+      }] : [],
+      timer: currentTimer || 300
+    });
+  },
+
   reset: () => set({ currentPlayer: null, bids: [], timer: 300, status: 'idle' })
 }));
+

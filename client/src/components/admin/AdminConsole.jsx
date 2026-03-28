@@ -32,17 +32,17 @@ const AdminConsole = ({
               </div>
               <div className="flex-grow space-y-4 text-center md:text-left">
                 <div>
-                  <h2 className="text-4xl font-headline font-black text-white leading-none uppercase mb-1 italic">{currentPlayer.name}</h2>
-                  <p className="text-primary font-headline font-bold tracking-widest text-xs uppercase">{currentPlayer.role} • {currentPlayer.country}</p>
+                  <h2 className="text-2xl md:text-3xl lg:text-4xl font-headline font-black text-white leading-none uppercase mb-1 italic truncate max-w-[300px] md:max-w-none">{currentPlayer.name}</h2>
+                  <p className="text-primary font-headline font-bold tracking-widest text-[10px] md:text-xs uppercase">{currentPlayer.role} • {currentPlayer.country}</p>
                 </div>
                 <div className="flex flex-wrap justify-center md:justify-start gap-4">
-                  <div className="bg-surface-container-low px-4 py-2 rounded-lg border border-white/5">
+                  <div className="bg-surface-container-low px-4 py-2 rounded-lg border border-white/5 flex-shrink-0">
                     <span className="block text-[8px] text-slate-500 uppercase font-bold tracking-widest">Base Price</span>
-                    <span className="font-data text-2xl text-white whitespace-nowrap">₹ {formatCurrency(currentPlayer.base_price)} CR</span>
+                    <span className="font-data text-xl md:text-2xl text-white whitespace-nowrap">₹ {formatCurrency(currentPlayer.base_price)} CR</span>
                   </div>
-                  <div className="bg-primary/10 px-4 py-2 rounded-lg border border-primary/20">
+                  <div className="bg-primary/10 px-4 py-2 rounded-lg border border-primary/20 flex-shrink-0">
                     <span className="block text-[8px] text-primary uppercase font-bold tracking-widest">Current Bid</span>
-                    <span className="font-data text-2xl text-primary animate-pulse whitespace-nowrap">₹ {formatCurrency(bids[0]?.amount || currentPlayer.base_price)} CR</span>
+                    <span className="font-data text-xl md:text-2xl text-primary animate-pulse whitespace-nowrap">₹ {formatCurrency(bids[0]?.amount || currentPlayer.base_price)} CR</span>
                   </div>
                 </div>
                 <div className="flex items-center gap-2 justify-center md:justify-start text-tertiary">

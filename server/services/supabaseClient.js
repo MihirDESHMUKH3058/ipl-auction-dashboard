@@ -6,7 +6,10 @@ dotenv.config();
 const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-if (!supabaseUrl || !supabaseServiceKey) {
+if (!supabaseUrl ) {
+  console.warn('Supabase credentials missing url .env');
+}
+if (!supabaseServiceKey) {
   console.warn('Supabase credentials missing in .env');
 }
 

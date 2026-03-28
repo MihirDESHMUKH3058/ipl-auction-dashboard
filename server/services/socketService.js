@@ -9,6 +9,8 @@ export class SocketService {
     this.currentBid = 0;
     this.highestBidder = null;
     this.currentPlayerId = null;
+    this.currentPlayer = null;
+    this.status = 'idle';
     this.setupHandlers();
   }
 
@@ -16,33 +18,50 @@ export class SocketService {
     this.auctionNamespace.on('connection', (socket) => {
       console.log(`Socket ${socket.id} connected to /auction`);
 
+      // 1. SYNC INITIAL STATE
+      socket.emit('auction:sync', {
+        status: this.status,
+        currentPlayer: this.currentPlayer,
+        currentBid: this.currentBid,
+        currentTimer: this.currentTimer,
+        highestBidder: this.highestBidder
+      });
+
       // AUCTION CONTROL
-      socket.on('auction:start', async (data) => {
-        const { playerId, basePrice } = data;
-        this.currentPlayerId = playerId;
-        this.currentBid = basePrice || 0;
+      socket.on('auction:start', async (playerData) => {
+        //PlayerData contains the full player object from the admin
+        const { id, base_price } = playerData;
+        this.currentPlayerId = id;
+        this.currentBid = Number(base_price) || 0;
         this.highestBidder = null;
+        this.status = 'preview';
+        this.currentTimer = 300; // Reset timer for new player
+
+        // Use provided data immediately for the broadcast (ensures name/image show up)
+        this.currentPlayer = playerData;
+        this.broadcastNewPlayer(this.currentPlayer);
+        this.broadcastStatus(this.status);
+        this.broadcastTimer(this.currentTimer);
         
         try {
-          const { data: player, error } = await supabase
+          // Fetch latest from DB to ensure state consistency (background check)
+          const { data: dbPlayer, error } = await supabase
             .from('players')
             .select('*')
-            .eq('id', playerId)
+            .eq('id', id)
             .single();
 
-          if (error || !player) {
-            console.error("Failed to fetch player:", error);
-            this.broadcastNewPlayer(data);
-          } else {
-            this.broadcastNewPlayer(player);
+          if (!error && dbPlayer) {
+            this.currentPlayer = dbPlayer;
+            // Optionally re-broadcast if DB data is more complete, but usually not needed
           }
         } catch (err) {
-          console.error("Error in auction:start:", err);
-          this.broadcastNewPlayer(data);
+          console.error("Error in background player fetch:", err);
         }
-        
-        this.broadcastStatus('preview');
       });
+
+
+
 
       socket.on('auction:begin_bidding', () => {
         this.startAuctionTimer(60); // 60s as default
@@ -63,25 +82,29 @@ export class SocketService {
         const { playerId, amount, teamName, teamId, type } = data;
         
         let newAmount;
+        const baseAmount = Number(amount) || 0;
+        const currentTotal = Number(this.currentBid) || 0;
+
         if (type === 'absolute') {
-          newAmount = amount;
+          newAmount = baseAmount;
         } else {
           // Increment logic: Current + 25 Lakhs (0.25 Cr)
-          newAmount = (this.currentBid || amount || 0) + 2500000; 
+          newAmount = (currentTotal || baseAmount || 0) + 2500000; 
         }
         
         const bid = {
           id: Date.now(),
           playerId,
-          amount: newAmount,
+          amount: Number(newAmount),
           team_id: teamId,
           team_name: teamName || 'Anonymous Team',
           timestamp: new Date().toISOString()
         };
 
-        this.currentBid = newAmount;
+        this.currentBid = Number(newAmount);
         this.highestBidder = { id: teamId, name: teamName };
         this.broadcastBid(bid);
+
         
         // Timer Extension Logic: If bid is placed in last 10s, extend to 10s
         if (this.currentTimer < 10) {
@@ -239,18 +262,22 @@ export class SocketService {
   }
 
   broadcastStatus(status) {
+    this.status = status;
     this.auctionNamespace.emit('auction:status', status);
   }
 
   broadcastTimer(seconds) {
+    this.currentTimer = seconds;
     this.auctionNamespace.emit('timer:tick', { seconds });
   }
 
   broadcastSold(data) {
+    this.status = 'sold';
     this.auctionNamespace.emit('player:sold', data);
   }
 
   broadcastUnsold(data) {
+    this.status = 'unsold';
     this.auctionNamespace.emit('player:unsold', data);
   }
 
@@ -258,3 +285,4 @@ export class SocketService {
     this.auctionNamespace.emit('system:refresh');
   }
 }
+
