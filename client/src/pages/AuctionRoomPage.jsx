@@ -219,13 +219,14 @@ const AuctionRoomPage = () => {
                         currentTeam.id
                       )}
                       disabled={status !== 'active' || String(lastBid?.team_id) === String(currentTeam.id)}
-                      className={`w-full max-w-md py-6 rounded-2xl font-headline font-black uppercase text-xl tracking-widest transition-all shadow-[0_0_40px_rgba(255,185,85,0.4)] border-b-8 shadow-2xl relative overflow-hidden ${
+                      className={`w-full max-w-md py-5 rounded-2xl font-headline font-black uppercase text-lg tracking-[0.2em] transition-all relative overflow-hidden shadow-2xl flex items-center justify-center gap-3 border border-white/10 ${
                         String(lastBid?.team_id) === String(currentTeam.id) 
-                        ? 'bg-slate-800 text-slate-500 border-slate-900 cursor-not-allowed grayscale' 
-                        : 'bg-gradient-to-r from-primary to-on-primary-fixed text-on-primary hover:scale-[1.05] active:scale-95 border-on-primary-fixed outline-none ring-2 ring-primary/20'
-                      } disabled:opacity-50 disabled:grayscale disabled:hover:scale-100`}
+                        ? 'bg-slate-900/50 text-slate-600 cursor-not-allowed grayscale' 
+                        : 'bg-gradient-to-br from-amber-400 via-primary to-amber-600 text-on-primary hover:shadow-primary/40 hover:translate-y-[-2px] active:translate-y-[1px] active:scale-[0.98] ring-4 ring-primary/20'
+                      } disabled:opacity-50 disabled:grayscale disabled:hover:scale-100 group`}
                     >
-                      {String(lastBid?.team_id) === String(currentTeam.id) ? 'LEADING...' : 'PLACE BID (+₹0.25 CR)'}
+                      <span className="material-symbols-outlined text-xl group-hover:rotate-12 transition-transform">gavel</span>
+                      {String(lastBid?.team_id) === String(currentTeam.id) ? 'CURRENTLY LEADING' : 'PLACE BID (+0.25 CR)'}
                     </button>
                   </div>
                 </div>

@@ -72,7 +72,7 @@ const AdminConsole = ({
               {status === 'preview' && (
                 <button 
                   onClick={onBeginBidding} 
-                  className="flex-1 sm:flex-none px-8 py-3 bg-primary text-on-primary font-headline font-black rounded-xl hover:brightness-110 active:scale-95 transition-all uppercase text-xs flex items-center justify-center gap-2 shadow-lg shadow-primary/20"
+                  className="flex-1 sm:flex-none px-8 py-3 bg-gradient-to-r from-primary to-amber-600 text-on-primary font-headline font-black rounded-xl hover:brightness-110 active:scale-95 transition-all uppercase text-xs flex items-center justify-center gap-2 shadow-lg shadow-primary/20 ring-4 ring-primary/10"
                 >
                   <span className="material-symbols-outlined text-sm">play_arrow</span> Start Auction
                 </button>
@@ -80,16 +80,16 @@ const AdminConsole = ({
               <button 
                 onClick={onHandleSold} 
                 disabled={!currentPlayer || bids.length === 0 || (status !== 'active' && status !== 'expired')} 
-                className="flex-1 sm:flex-none px-8 py-3 bg-tertiary text-on-tertiary font-headline font-black rounded-xl hover:brightness-110 active:scale-95 disabled:opacity-30 transition-all uppercase text-xs flex items-center justify-center gap-2 shadow-lg shadow-tertiary/20"
+                className="flex-1 sm:flex-none px-8 py-3 bg-gradient-to-r from-tertiary to-emerald-600 text-on-tertiary font-headline font-black rounded-xl hover:brightness-110 active:scale-95 disabled:opacity-30 transition-all uppercase text-xs flex items-center justify-center gap-2 shadow-lg shadow-tertiary/20 ring-4 ring-tertiary/10"
               >
-                <span className="material-symbols-outlined text-sm">gavel</span> Mark as SOLD
+                <span className="material-symbols-outlined text-sm">gavel</span> Mark SOLD
               </button>
               <button 
                 onClick={onHandleUnsold} 
                 disabled={!currentPlayer || (status !== 'active' && status !== 'expired')} 
-                className="flex-1 sm:flex-none px-6 py-3 bg-surface-variant text-white font-headline font-bold rounded-xl hover:bg-surface-bright active:scale-95 disabled:opacity-30 transition-all uppercase text-xs border border-white/10"
+                className="flex-1 sm:flex-none px-6 py-3 bg-surface-container-low text-slate-300 font-headline font-bold rounded-xl hover:bg-surface-container-high active:scale-95 disabled:opacity-30 transition-all uppercase text-[10px] border border-white/5 tracking-widest"
               >
-                Mark UNSOLD
+                Pass Unsold
               </button>
             </div>
             <div className="flex items-center gap-3 w-full sm:max-w-xs">
@@ -104,7 +104,7 @@ const AdminConsole = ({
               </div>
               <button 
                 onClick={onManualBidSubmit} 
-                className="bg-primary text-on-primary hover:scale-105 p-3 rounded-xl transition-all shadow-lg shadow-primary/20 disabled:opacity-30"
+                className="bg-primary hover:bg-primary-container text-on-primary hover:scale-[1.02] active:scale-[0.98] p-3 rounded-xl transition-all shadow-lg shadow-primary/20 disabled:opacity-30 ring-2 ring-primary/20"
               >
                 <span className="material-symbols-outlined text-base">send</span>
               </button>
