@@ -4,6 +4,7 @@ import { useTeamStore } from '../store/teamStore';
 import { useAuthStore } from '../store/authStore';
 import { socketClient } from '../lib/socketClient';
 import { motion, AnimatePresence } from 'framer-motion';
+import { TEAM_SQUAD_LIMIT } from '../lib/auctionData';
 
 const AuctionRoomPage = () => {
   const { currentPlayer, bids, timer, status } = useAuctionStore();
@@ -15,12 +16,7 @@ const AuctionRoomPage = () => {
   const [view, setView] = useState('podium'); // podium, draft
 
   useEffect(() => {
-    socketClient.connect();
-    return () => socketClient.disconnect();
-  }, []);
-
-  useEffect(() => {
-    if (bids && bids.length > 0) setLastBid(bids[0]);
+    setLastBid(bids && bids.length > 0 ? bids[0] : null);
   }, [bids]);
 
   // Find current team's data with robust null checking
@@ -250,7 +246,15 @@ const AuctionRoomPage = () => {
                   </div>
                   <div className="flex flex-col sm:flex-row justify-between items-center px-2 gap-1 text-center sm:text-left">
                     <span className="text-[8px] md:text-[10px] font-bold text-slate-500 uppercase tracking-widest whitespace-nowrap">Squad Strength</span>
-                    <span className="font-data text-base md:text-lg lg:text-xl text-white whitespace-nowrap">{currentTeam.players.length} / 25</span>
+                    <span className="font-data text-base md:text-lg lg:text-xl text-white whitespace-nowrap">
+                      {currentTeam.players.length} / {TEAM_SQUAD_LIMIT}
+                    </span>
+                  </div>
+                  <div className="flex flex-col sm:flex-row justify-between items-center px-2 gap-1 text-center sm:text-left">
+                    <span className="text-[8px] md:text-[10px] font-bold text-slate-500 uppercase tracking-widest whitespace-nowrap">Spots Remaining</span>
+                    <span className="font-data text-base md:text-lg lg:text-xl text-primary whitespace-nowrap">
+                      {Math.max(0, TEAM_SQUAD_LIMIT - currentTeam.players.length)} / {TEAM_SQUAD_LIMIT}
+                    </span>
                   </div>
                 </div>
               </div>
@@ -276,7 +280,10 @@ const AuctionRoomPage = () => {
                 <div className="space-y-2">
                   {team.players.map(p => (
                     <div key={p.id} className="flex justify-between items-center bg-surface-container-low p-2 rounded-lg border border-white/5 text-[10px]">
-                      <span className="font-bold text-slate-300 uppercase">{p.name}</span>
+                      <span className="font-bold text-slate-300 uppercase">
+                        {p.name}
+                        {p.rating ? ` (RT ${p.rating})` : ''}
+                      </span>
                       <span className="font-data text-primary">₹{formatCurrency(p.sale_price)}Cr</span>
                     </div>
                   ))}

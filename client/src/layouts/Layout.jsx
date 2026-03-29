@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import { Outlet, NavLink } from 'react-router-dom';
 import LoginPortal from '../components/auth/LoginPortal';
+import { useAuctionBootstrap } from '../hooks/useAuctionBootstrap';
 
 const Layout = () => {
   const [isLoginOpen, setIsLoginOpen] = useState(false);
   const [loginMode, setLoginMode] = useState('admin');
+  useAuctionBootstrap();
 
   return (
     <div className="min-h-screen bg-background text-on-surface font-body overflow-x-hidden">

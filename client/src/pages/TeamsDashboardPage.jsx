@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { useTeamStore } from '../store/teamStore';
 import { motion } from 'framer-motion';
+import { TEAM_SQUAD_LIMIT } from '../lib/auctionData';
 
 const TeamsDashboardPage = () => {
   const { teams, loading, fetchTeams } = useTeamStore();
@@ -67,7 +68,9 @@ const TeamsDashboardPage = () => {
                     <span className="text-3xl font-data text-slate-600">{(index + 1).toString().padStart(2, '0')}</span>
                     <div className="flex flex-col">
                       <span className="text-xl font-headline font-black text-white uppercase tracking-tight">{team.name}</span>
-                      <span className="text-[10px] font-bold text-tertiary uppercase tracking-widest">{team.players.length} Players Signed</span>
+                      <span className="text-[10px] font-bold text-tertiary uppercase tracking-widest">
+                        {team.players.length} Signed • {Math.max(0, TEAM_SQUAD_LIMIT - team.players.length)} Spots Left
+                      </span>
                     </div>
                   </div>
                   <div className="w-12 h-12 rounded-xl bg-surface-container-high flex items-center justify-center border border-white/5">

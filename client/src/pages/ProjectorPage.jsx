@@ -2,15 +2,17 @@ import React, { useState, useEffect } from 'react';
 import { useAuctionStore } from '../store/auctionStore';
 import { useTeamStore } from '../store/teamStore';
 import { motion, AnimatePresence } from 'framer-motion';
+import { TEAM_SQUAD_LIMIT } from '../lib/auctionData';
+import { useAuctionBootstrap } from '../hooks/useAuctionBootstrap';
 
 const ProjectorPage = () => {
   const { currentPlayer, bids, timer } = useAuctionStore();
   const { teams } = useTeamStore();
   const [lastBid, setLastBid] = useState(null);
+  useAuctionBootstrap();
 
   useEffect(() => {
-    import('../lib/socketClient').then(m => m.socketClient.connect());
-    if (bids.length > 0) setLastBid(bids[0]);
+    setLastBid(bids.length > 0 ? bids[0] : null);
   }, [bids]);
 
   const formatCurrency = (amount) => {
@@ -157,7 +159,7 @@ const ProjectorPage = () => {
                 </div>
                 <div className="flex justify-between items-center px-4">
                   <span className="font-label text-slate-400 uppercase text-xs tracking-[0.2em] font-bold">Squad Roster</span>
-                  <span className="font-data text-4xl text-on-surface">{leadingTeam.players.length} / 25</span>
+                  <span className="font-data text-4xl text-on-surface">{leadingTeam.players.length} / {TEAM_SQUAD_LIMIT}</span>
                 </div>
               </div>
             </div>

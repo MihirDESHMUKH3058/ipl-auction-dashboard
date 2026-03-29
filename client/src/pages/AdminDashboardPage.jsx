@@ -4,6 +4,7 @@ import { useAuctionStore } from '../store/auctionStore';
 import { useTeamStore } from '../store/teamStore';
 import { motion, AnimatePresence } from 'framer-motion';
 import { socketClient } from '../lib/socketClient';
+import { DEFAULT_AUCTION_TIMER } from '../lib/auctionData';
 
 // Modular Components
 import AdminSidebar from '../components/admin/AdminSidebar';
@@ -31,8 +32,8 @@ const AdminDashboardPage = () => {
   // Initial Connection
   useEffect(() => {
     socketClient.connect();
-    if (players.length === 0) playerStore.fetchPlayers();
-    if (teams.length === 0) teamStore.fetchTeams();
+    playerStore.fetchPlayers();
+    teamStore.fetchTeams();
   }, []);
 
   // Auto-Queue Logic
@@ -210,7 +211,7 @@ const AdminDashboardPage = () => {
                   formatCurrency={formatCurrency}
                   onRevert={(player) => {
                     playerStore.updatePlayer(player.id, { status: 'available' });
-                    showNotification(`${player.name} REINSTATED TO POOL`, 'success');
+                    showNotification(`${player.name} MOVED TO BAG`, 'success');
                   }}
                 />
               </motion.div>
@@ -218,10 +219,11 @@ const AdminDashboardPage = () => {
             {activeTab === 'settings' && (
                <motion.div key="settings" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}>
                  <AdminSettings 
-                   onSetTimer={(t) => { auctionStore.setTimer(t); showNotification(`TIMER RESET TO ${Math.floor(t/60)}m`, 'info'); }}
-                   onPauseTimer={() => { socketClient.pauseTimer(); showNotification("AUCTION PAUSED", 'warning'); }}
+                   onStartTimer={(t) => { auctionStore.startTimer(t); showNotification(`TIMER STARTED AT ${Math.floor(t/60)}m`, 'info'); }}
+                   onPauseTimer={() => { auctionStore.pauseTimer(); showNotification("AUCTION PAUSED", 'warning'); }}
+                   onResetTimer={() => { auctionStore.resetTimer(DEFAULT_AUCTION_TIMER); showNotification("TIMER RESET", 'warning'); }}
                    onResetSession={() => { playerStore.resetSession(); showNotification("SESSION RESET REQUESTED", 'error'); }}
-                   onLotCleanup={() => { showNotification("CALCULATING TOTALS...", 'info'); }}
+                   onLotCleanup={() => { socketClient.recalculateSession?.(); showNotification("RECALCULATING TOTALS...", 'info'); }}
                  />
                </motion.div>
             )}

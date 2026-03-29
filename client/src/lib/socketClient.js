@@ -120,6 +120,10 @@ class SocketClient {
   }
 
   setTimer(seconds) {
+    this.startTimer(seconds);
+  }
+
+  startTimer(seconds) {
     this.socket.emit('auction:set-timer', seconds);
   }
 
@@ -127,8 +131,16 @@ class SocketClient {
     this.socket.emit('auction:pause-timer');
   }
 
+  resetTimer(seconds) {
+    this.socket.emit('auction:reset-timer', seconds);
+  }
+
   resetSession() {
     this.socket.emit('admin:reset-session');
+  }
+
+  recalculateSession() {
+    this.socket.emit('admin:recalculate-session');
   }
 
   disconnect() {

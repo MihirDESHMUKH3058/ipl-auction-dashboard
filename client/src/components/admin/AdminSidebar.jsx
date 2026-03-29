@@ -58,7 +58,7 @@ const AdminSidebar = ({ activeTab, setActiveTab, autoQueue, setAutoQueue, availa
               <div className="flex items-center gap-2">
                 <span className="material-symbols-outlined text-sm">casino</span> Generate Random Bag
               </div>
-              <span className="text-[8px] opacity-60 tracking-[0.2em] font-bold">10 UNSOLD ONLY</span>
+              <span className="text-[8px] opacity-60 tracking-[0.2em] font-bold">ONE RATING TIER ONLY</span>
             </motion.button>
             <div className="mt-3 bg-surface-container-low p-3 rounded-xl border border-white/5 flex justify-between items-center">
               <span className="text-[8px] font-bold text-slate-500 uppercase tracking-widest">Available</span>

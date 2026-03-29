@@ -80,7 +80,7 @@ const AdminPlayerManager = ({ players, onAdd, onUpdate, onDelete, formatCurrency
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {[
           { label: 'Total Players', val: players.length, color: 'primary' },
-          { label: 'Unsold/Hidden', val: players.filter(p => p.status === 'hidden').length, color: 'slate-500' },
+          { label: 'Unsold/Hidden', val: players.filter(p => p.status !== 'sold').length, color: 'slate-500' },
           { label: 'Available (Released)', val: players.filter(p => p.status === 'available').length, color: 'tertiary' },
           { label: 'Total Sold', val: players.filter(p => p.status === 'sold').length, color: 'amber-500' }
         ].map(stat => (

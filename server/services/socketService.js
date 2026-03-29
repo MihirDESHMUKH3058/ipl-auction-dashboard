@@ -1,16 +1,20 @@
 import { supabase } from './supabaseClient.js';
+import { auctionEngine } from './auctionEngine.js';
+
+const DEFAULT_TIMER_SECONDS = 60;
 
 export class SocketService {
   constructor(io) {
     this.io = io;
     this.auctionNamespace = io.of('/auction');
     this.timerInterval = null;
-    this.currentTimer = 300; 
+    this.currentTimer = DEFAULT_TIMER_SECONDS;
     this.currentBid = 0;
     this.highestBidder = null;
     this.currentPlayerId = null;
     this.currentPlayer = null;
     this.status = 'idle';
+    this.playerLocks = new Set();
     this.setupHandlers();
   }
 
@@ -29,22 +33,19 @@ export class SocketService {
 
       // AUCTION CONTROL
       socket.on('auction:start', async (playerData) => {
-        //PlayerData contains the full player object from the admin
         const { id, base_price } = playerData;
         this.currentPlayerId = id;
         this.currentBid = Number(base_price) || 0;
         this.highestBidder = null;
         this.status = 'preview';
-        this.currentTimer = 300; // Reset timer for new player
+        this.currentTimer = DEFAULT_TIMER_SECONDS;
 
-        // Use provided data immediately for the broadcast (ensures name/image show up)
         this.currentPlayer = playerData;
         this.broadcastNewPlayer(this.currentPlayer);
         this.broadcastStatus(this.status);
         this.broadcastTimer(this.currentTimer);
         
         try {
-          // Fetch latest from DB to ensure state consistency (background check)
           const { data: dbPlayer, error } = await supabase
             .from('players')
             .select('*')
@@ -53,7 +54,6 @@ export class SocketService {
 
           if (!error && dbPlayer) {
             this.currentPlayer = dbPlayer;
-            // Optionally re-broadcast if DB data is more complete, but usually not needed
           }
         } catch (err) {
           console.error("Error in background player fetch:", err);
@@ -64,16 +64,14 @@ export class SocketService {
 
 
       socket.on('auction:begin_bidding', () => {
-        this.startAuctionTimer(60); // 60s as default
+        this.startAuctionTimer(DEFAULT_TIMER_SECONDS);
       });
 
       socket.on('auction:manual-sold', async (data) => {
-        // data: { id, team_id, team_name, sale_price }
         await this.finalizeSold(data);
       });
 
       socket.on('auction:manual-unsold', async (data) => {
-        // data: { id }
         await this.finalizeUnsold(data.id);
       });
 
@@ -145,51 +143,82 @@ export class SocketService {
       });
 
       socket.on('admin:bag-generate', async (params) => {
-        // params can be an object { count: 10, tier: '80+' } or just count
         const count = typeof params === 'object' ? params.count || 10 : (params || 10);
         const tier = typeof params === 'object' ? params.tier : null;
 
-        let query = supabase.from('players').select('id').eq('status', 'hidden');
-        if (tier) {
-          query = query.ilike('category', `%${tier}%`);
+        const { data: players, error: fetchError } = await supabase
+          .from('players')
+          .select('*')
+          .neq('status', 'sold');
+
+        if (fetchError) {
+          console.error('Bag generation fetch error:', fetchError);
+          return;
         }
-        query = query.limit(count);
 
-        const { data: unsoldPlayers, error: fetchError } = await query;
+        const eligiblePlayers = (players || []).filter((player) => {
+          const numericRating = Number.parseInt(player.rating, 10);
+          if (!tier) return String(player.id) !== String(this.currentPlayerId);
+          if (!Number.isFinite(numericRating)) return false;
+          if (tier === '80+') return numericRating >= 80;
+          if (tier === '70-79') return numericRating >= 70 && numericRating <= 79;
+          if (tier === '60-69') return numericRating >= 60 && numericRating <= 69;
+          return true;
+        });
 
-        if (!fetchError && unsoldPlayers.length > 0) {
-          const ids = unsoldPlayers.map(p => p.id);
+        const shuffled = eligiblePlayers
+          .sort(() => Math.random() - 0.5)
+          .slice(0, count);
+
+        const selectedIds = shuffled.map((player) => player.id);
+        const hiddenIds = (players || [])
+          .filter((player) => String(player.id) !== String(this.currentPlayerId))
+          .map((player) => player.id);
+
+        if (hiddenIds.length > 0) {
+          const { error: hideError } = await supabase
+            .from('players')
+            .update({ status: 'hidden' })
+            .in('id', hiddenIds);
+
+          if (hideError) {
+            console.error('Bag hide error:', hideError);
+            return;
+          }
+        }
+
+        if (selectedIds.length > 0) {
           const { error: updateError } = await supabase
             .from('players')
             .update({ status: 'available' })
-            .in('id', ids);
+            .in('id', selectedIds);
 
-          if (!updateError) {
-            this.broadcastRefresh();
+          if (updateError) {
+            console.error('Bag update error:', updateError);
+            return;
           }
         }
+
+        this.broadcastRefresh();
       });
 
       socket.on('admin:reset-session', async () => {
         try {
-          // Clear team players first to avoid foreign key errors if enforced
-          const { error: tpError } = await supabase.from('team_players')
-            .delete()
-            .neq('team_id', 0); // Delete all
-            
-          if (tpError) console.error("Reset session team_players error:", tpError);
-
-          // Clear all auction results
-          const { error } = await supabase.from('players')
-            .update({ status: 'hidden', team_name: null, sale_price: null })
-            .neq('id', 0); // Safety clause
-            
-          if (error) console.error("Reset session players error:", error);
-          
+          await auctionEngine.resetSession();
+          this.clearAuctionState();
           this.broadcastRefresh();
           this.broadcastStatus('idle');
         } catch (err) {
           console.error("Failed to reset session:", err);
+        }
+      });
+
+      socket.on('admin:recalculate-session', async () => {
+        try {
+          await auctionEngine.recalculateTeamBudgets();
+          this.broadcastRefresh();
+        } catch (err) {
+          console.error('Failed to recalculate session:', err);
         }
       });
 
@@ -205,6 +234,16 @@ export class SocketService {
         }
       });
 
+      socket.on('auction:reset-timer', (seconds) => {
+        if (this.timerInterval) {
+          clearInterval(this.timerInterval);
+          this.timerInterval = null;
+        }
+        this.currentTimer = Number(seconds) > 0 ? Number(seconds) : DEFAULT_TIMER_SECONDS;
+        this.broadcastTimer(this.currentTimer);
+        this.broadcastStatus(this.currentPlayerId ? 'preview' : 'idle');
+      });
+
       socket.on('disconnect', () => {
         console.log(`Socket ${socket.id} disconnected`);
       });
@@ -214,65 +253,54 @@ export class SocketService {
   async finalizeSold(data) {
     if (this.timerInterval) clearInterval(this.timerInterval);
     const { id, team_id, team_name, sale_price } = data;
+    if (this.playerLocks.has(id)) return;
+    this.playerLocks.add(id);
     
     try {
-      // Update DB
-      const { error: playerError } = await supabase.from('players')
-        .update({ status: 'sold', team_name, sale_price })
-        .eq('id', id);
+      const record = await auctionEngine.markSold(id, team_id, team_name, sale_price);
 
-      if (playerError) console.error("Finalize sold player error:", playerError);
-
-      const { error: teamPlayerError } = await supabase.from('team_players')
-        .insert([{ team_id, player_id: id, final_price: sale_price }]);
-
-      if (teamPlayerError && teamPlayerError.code !== '23505') {
-        console.error("Finalize sold team_player error:", teamPlayerError);
-      }
-
-      if (!playerError) {
-        this.broadcastSold(data);
-        this.broadcastRefresh();
-      }
+      this.broadcastSold({
+        id,
+        team_id,
+        team_name: record.team_name || team_name,
+        sale_price: record.sale_price || sale_price
+      });
+      this.broadcastRefresh();
+      
+      console.log(`Player ${id} sold to ${team_name} for ${sale_price}`);
     } catch (err) {
       console.error("Error finalizing sold:", err);
+    } finally {
+      this.playerLocks.delete(id);
     }
     
-    this.currentPlayerId = null;
-    this.highestBidder = null;
+    this.clearAuctionState();
   }
 
   async finalizeUnsold(id) {
     if (this.timerInterval) clearInterval(this.timerInterval);
+    if (this.playerLocks.has(id)) return;
+    this.playerLocks.add(id);
     
     try {
-      const { error: playerError } = await supabase.from('players')
-        .update({ status: 'unsold', team_name: null, sale_price: null })
-        .eq('id', id);
-
-      if (playerError) console.error("Finalize unsold player error:", playerError);
+      await auctionEngine.markUnsold(id);
       
-      const { error: tpError } = await supabase.from('team_players')
-        .delete()
-        .eq('player_id', id);
-        
-      if (tpError) console.error("Finalize unsold team_player error:", tpError);
-
-      if (!playerError) {
-        this.broadcastUnsold({ id });
-        this.broadcastRefresh();
-      }
+      this.broadcastUnsold({ id });
+      this.broadcastRefresh();
+      
+      console.log(`Player ${id} marked as unsold`);
     } catch (err) {
       console.error("Error finalizing unsold:", err);
+    } finally {
+      this.playerLocks.delete(id);
     }
     
-    this.currentPlayerId = null;
-    this.highestBidder = null;
+    this.clearAuctionState();
   }
 
   startAuctionTimer(seconds) {
     if (this.timerInterval) clearInterval(this.timerInterval);
-    this.currentTimer = seconds;
+    this.currentTimer = Number(seconds) > 0 ? Number(seconds) : DEFAULT_TIMER_SECONDS;
     this.broadcastStatus('active');
     
     this.timerInterval = setInterval(async () => {
@@ -281,8 +309,22 @@ export class SocketService {
       
       if (this.currentTimer <= 0) {
         clearInterval(this.timerInterval);
+        this.timerInterval = null;
         this.broadcastStatus('time_expired');
-        // We don't auto-finalize here to let admin decide if they want to extend or finalize
+        
+        // AUTO-FINALIZE
+        if (this.highestBidder && this.currentPlayerId) {
+          console.log(`Timer expired. Auto-finalizing sale for player ${this.currentPlayerId}`);
+          await this.finalizeSold({
+            id: this.currentPlayerId,
+            team_id: this.highestBidder.id,
+            team_name: this.highestBidder.name,
+            sale_price: this.currentBid
+          });
+        } else if (this.currentPlayerId) {
+          console.log(`Timer expired. No bids for player ${this.currentPlayerId}. Marking as unsold.`);
+          await this.finalizeUnsold(this.currentPlayerId);
+        }
       }
     }, 1000);
   }
@@ -317,6 +359,26 @@ export class SocketService {
 
   broadcastRefresh() {
     this.auctionNamespace.emit('system:refresh');
+  }
+
+  clearAuctionState() {
+    if (this.timerInterval) {
+      clearInterval(this.timerInterval);
+      this.timerInterval = null;
+    }
+    this.currentPlayerId = null;
+    this.currentPlayer = null;
+    this.currentBid = 0;
+    this.currentTimer = DEFAULT_TIMER_SECONDS;
+    this.highestBidder = null;
+    this.status = 'idle';
+    this.auctionNamespace.emit('auction:sync', {
+      status: 'idle',
+      currentPlayer: null,
+      currentBid: 0,
+      currentTimer: DEFAULT_TIMER_SECONDS,
+      highestBidder: null
+    });
   }
 }
 

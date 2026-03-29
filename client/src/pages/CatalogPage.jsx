@@ -243,6 +243,11 @@ const CatalogPage = () => {
                         UNSOLD
                       </span>
                     )}
+                    {!isSold && !isUnsold && !isAtPodium && (
+                      <span className="px-3 py-1 bg-tertiary/20 text-tertiary rounded-full text-[8px] font-black uppercase tracking-widest border border-tertiary/30">
+                        AVAILABLE
+                      </span>
+                    )}
                   </div>
 
                   {/* SOLD Stamp */}
@@ -271,6 +276,16 @@ const CatalogPage = () => {
                       <div className="overflow-hidden">
                         <h3 className="font-headline font-black text-xl uppercase italic leading-none text-white truncate">{player.name}</h3>
                         <p className="text-[10px] font-medium text-slate-500 mt-1 uppercase tracking-widest truncate">{player.country || 'International'} • {player.role}</p>
+                      </div>
+                      <div className="flex flex-col items-end gap-2 shrink-0">
+                        {player.rating && (
+                          <span className="px-2 py-1 rounded-lg bg-primary/10 border border-primary/20 text-primary text-[10px] font-black">
+                            RT {player.rating}
+                          </span>
+                        )}
+                        <span className="px-2 py-1 rounded-lg bg-white/5 border border-white/10 text-[9px] font-black text-slate-300 uppercase">
+                          {player.status}
+                        </span>
                       </div>
                     </div>
 

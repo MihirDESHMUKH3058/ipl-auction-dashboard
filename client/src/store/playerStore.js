@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { supabase } from '../supabaseClient';
+import { getRatingTier, normalizeRole, normalizeStatus } from '../lib/auctionData';
 
 const generateMockStats = (player) => {
   const rating = player.rating || 8;
@@ -32,7 +33,14 @@ export const usePlayerStore = create((set) => ({
   updatePlayerStatus: (playerId, status, teamName = null, salePrice = null) => {
     set((state) => ({
       players: state.players.map(p => 
-        p.id === playerId ? { ...p, status, team_name: teamName, sale_price: salePrice } : p
+        p.id === playerId
+          ? {
+              ...p,
+              status: normalizeStatus(status),
+              team_name: teamName,
+              sale_price: salePrice
+            }
+          : p
       )
     }));
   },
@@ -62,8 +70,6 @@ export const usePlayerStore = create((set) => ({
   },
   
   fetchPlayers: async () => {
-    const state = set; // Need get for proper loading check, but we can't cleanly access it without get(). So we'll skip the check or add get.
-    // Instead of using get(), let's just update the DB status handling.
     set({ loading: true });
     try {
       const { data, error } = await supabase.from('players').select('*');
@@ -79,19 +85,25 @@ export const usePlayerStore = create((set) => ({
           ...p,
           image_url: p.image_url || (p.image_file ? `/players/${p.image_file}` : null),
           base_price: p.basePrice ? parseInt(p.basePrice.replace(/[^\d]/g, '')) : p.base_price,
-          status: p.status?.toLowerCase() || 'available'
+          status: normalizeStatus(p.status || 'hidden')
         }));
       }
 
-      // Assign batches (11 players per batch) and respect DB status
       const enhancedPlayers = playersData.map((p, index) => {
         const batch = Math.floor(index / 11) + 1;
+        const normalizedPlayer = {
+          ...p,
+          role: normalizeRole(p.role),
+          country: p.country || p.nationality || 'International',
+          nationality: p.nationality || p.country || 'International',
+          status: normalizeStatus(p.status),
+        };
         
         return {
-          ...p,
+          ...normalizedPlayer,
           batch,
-          status: p.status || 'available',
-          stats: p.stats || generateMockStats(p)
+          rating_tier: getRatingTier(normalizedPlayer),
+          stats: p.stats || generateMockStats(normalizedPlayer)
         };
       });
       

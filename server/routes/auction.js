@@ -26,9 +26,9 @@ router.post('/start', authGuard, roleCheck('admin'), async (req, res) => {
 
 // Mark Sold (Admin)
 router.post('/sold', authGuard, roleCheck('admin'), async (req, res) => {
-  const { playerId, teamId, amount } = req.body;
+  const { playerId, teamId, teamName, amount } = req.body;
   try {
-    const result = await auctionEngine.markSold(playerId, teamId, amount);
+    const result = await auctionEngine.markSold(playerId, teamId, teamName, amount);
     res.json(result);
   } catch (err) {
     res.status(500).json({ error: err.message });

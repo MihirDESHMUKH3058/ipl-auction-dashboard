@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 
-const AdminSettings = ({ onSetTimer, onPauseTimer, onResetSession, onLotCleanup }) => {
+const AdminSettings = ({ onStartTimer, onPauseTimer, onResetTimer, onResetSession, onLotCleanup }) => {
   return (
     <div className="max-w-4xl space-y-8 pb-32">
       <div className="bg-surface-container rounded-[40px] p-8 sm:p-12 border border-white/5 shadow-2xl space-y-10">
@@ -24,7 +24,7 @@ const AdminSettings = ({ onSetTimer, onPauseTimer, onResetSession, onLotCleanup 
               ].map(opt => (
                 <button 
                   key={opt.label} 
-                  onClick={() => onSetTimer(opt.val)} 
+                  onClick={() => onStartTimer(opt.val)} 
                   className="flex-1 py-3 bg-primary/10 text-primary text-[9px] font-black uppercase rounded-xl hover:bg-primary hover:text-on-primary transition-all shadow-inner"
                 >
                   {opt.label}
@@ -39,7 +39,7 @@ const AdminSettings = ({ onSetTimer, onPauseTimer, onResetSession, onLotCleanup 
                 Pause Auction
               </button>
               <button 
-                onClick={() => onSetTimer(0)}
+                onClick={onResetTimer}
                 className="flex-1 py-3 bg-error/20 text-error text-[9px] font-black uppercase rounded-xl border border-error/30 hover:bg-error hover:text-white transition-all"
               >
                 Reset Timer

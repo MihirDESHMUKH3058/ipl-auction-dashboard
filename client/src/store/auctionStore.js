@@ -1,9 +1,10 @@
 import { create } from 'zustand';
+import { DEFAULT_AUCTION_TIMER } from '../lib/auctionData';
 
 export const useAuctionStore = create((set, get) => ({
   currentPlayer: null,
   bids: [],
-  timer: 300,
+  timer: DEFAULT_AUCTION_TIMER,
   status: 'idle', // idle, active, sold, unsold, expired
   
   setCurrentPlayer: (player) => {
@@ -11,13 +12,13 @@ export const useAuctionStore = create((set, get) => ({
       currentPlayer: player, 
       status: player ? 'preview' : 'idle', 
       bids: [],
-      timer: 300
+      timer: DEFAULT_AUCTION_TIMER
     });
   },
   
   addBid: (bid) => set((state) => ({ 
     bids: [bid, ...state.bids],
-    timer: 300 // Local sync, server will broadcast the official tick
+    timer: state.timer
   })),
 
   handleSold: async (playerStore, teamStore) => {
@@ -56,26 +57,53 @@ export const useAuctionStore = create((set, get) => ({
 
   updateLocalTimer: (time) => set({ timer: time }),
 
-  setTimer: async (time) => {
+  startTimer: async (time) => {
     const { socketClient } = await import('../lib/socketClient');
-    socketClient.setTimer(time);
+    socketClient.startTimer(time);
+  },
+  pauseTimer: async () => {
+    const { socketClient } = await import('../lib/socketClient');
+    socketClient.pauseTimer();
+  },
+  resetTimer: async (time = DEFAULT_AUCTION_TIMER) => {
+    const { socketClient } = await import('../lib/socketClient');
+    socketClient.resetTimer(time);
   },
   setStatus: (status) => set({ status: status === 'time_expired' ? 'expired' : status }),
   
   markSold: (playerStore, teamStore, data) => {
-    const { id, team_id, team_name, sale_price } = data;
+    const { id, team_name, sale_price } = data;
     playerStore.updatePlayerStatus(id, 'sold', team_name, sale_price);
-    // Find team and subtract budget using ID
-    if (teamStore && teamStore.updateTeamBudget) {
-      teamStore.updateTeamBudget(team_id, sale_price, 'N/A');
+    if (teamStore?.fetchTeams) {
+      teamStore.fetchTeams();
     }
-    set({ status: 'sold' });
+    set((state) => ({
+      status: 'sold',
+      currentPlayer: state.currentPlayer
+        ? {
+            ...state.currentPlayer,
+            status: 'sold',
+            team_name,
+            sale_price
+          }
+        : state.currentPlayer
+    }));
   },
 
   markUnsold: (playerStore, data) => {
     const { id } = data;
     playerStore.updatePlayerStatus(id, 'unsold');
-    set({ status: 'unsold' });
+    set((state) => ({
+      status: 'unsold',
+      currentPlayer: state.currentPlayer
+        ? {
+            ...state.currentPlayer,
+            status: 'unsold',
+            team_name: null,
+            sale_price: null
+          }
+        : state.currentPlayer
+    }));
   },
 
   setAuctionState: (state) => {
@@ -88,10 +116,10 @@ export const useAuctionStore = create((set, get) => ({
         team_id: highestBidder.id,
         team_name: highestBidder.name
       }] : [],
-      timer: currentTimer || 300
+      timer: Number.isFinite(currentTimer) ? currentTimer : DEFAULT_AUCTION_TIMER
     });
   },
 
-  reset: () => set({ currentPlayer: null, bids: [], timer: 300, status: 'idle' })
+  reset: () => set({ currentPlayer: null, bids: [], timer: DEFAULT_AUCTION_TIMER, status: 'idle' })
 }));
 
