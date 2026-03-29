@@ -33,7 +33,12 @@ const AdminConsole = ({
               <div className="flex-grow space-y-4 text-center md:text-left">
                 <div>
                   <h2 className="text-2xl md:text-3xl lg:text-4xl font-headline font-black text-white leading-none uppercase mb-1 italic truncate max-w-[300px] md:max-w-none">{currentPlayer.name}</h2>
-                  <p className="text-primary font-headline font-bold tracking-widest text-[10px] md:text-xs uppercase">{currentPlayer.role} • {currentPlayer.country}</p>
+                  <div className="flex items-center gap-3">
+                    <p className="text-primary font-headline font-bold tracking-widest text-[10px] md:text-xs uppercase">{currentPlayer.role} • {currentPlayer.country}</p>
+                    {currentPlayer.rating && (
+                      <span className="bg-white/10 px-2 py-1 rounded text-amber-400 text-[10px] font-black border border-amber-400/20 shadow-lg shrink-0">RT: {currentPlayer.rating}</span>
+                    )}
+                  </div>
                 </div>
                 <div className="flex flex-wrap justify-center md:justify-start gap-4">
                   <div className="bg-surface-container-low px-4 py-2 rounded-lg border border-white/5 flex-shrink-0">

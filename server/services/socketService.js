@@ -144,13 +144,18 @@ export class SocketService {
         } catch (err) { console.error("Error deleting player:", err); }
       });
 
-      socket.on('admin:bag-generate', async (count = 10) => {
-        // Select 10 hidden players
-        const { data: unsoldPlayers, error: fetchError } = await supabase
-          .from('players')
-          .select('id')
-          .eq('status', 'hidden')
-          .limit(count);
+      socket.on('admin:bag-generate', async (params) => {
+        // params can be an object { count: 10, tier: '80+' } or just count
+        const count = typeof params === 'object' ? params.count || 10 : (params || 10);
+        const tier = typeof params === 'object' ? params.tier : null;
+
+        let query = supabase.from('players').select('id').eq('status', 'hidden');
+        if (tier) {
+          query = query.ilike('category', `%${tier}%`);
+        }
+        query = query.limit(count);
+
+        const { data: unsoldPlayers, error: fetchError } = await query;
 
         if (!fetchError && unsoldPlayers.length > 0) {
           const ids = unsoldPlayers.map(p => p.id);
@@ -167,12 +172,20 @@ export class SocketService {
 
       socket.on('admin:reset-session', async () => {
         try {
+          // Clear team players first to avoid foreign key errors if enforced
+          const { error: tpError } = await supabase.from('team_players')
+            .delete()
+            .neq('team_id', 0); // Delete all
+            
+          if (tpError) console.error("Reset session team_players error:", tpError);
+
           // Clear all auction results
           const { error } = await supabase.from('players')
             .update({ status: 'hidden', team_name: null, sale_price: null })
             .neq('id', 0); // Safety clause
             
-          if (error) console.error("Reset session error:", error);
+          if (error) console.error("Reset session players error:", error);
+          
           this.broadcastRefresh();
           this.broadcastStatus('idle');
         } catch (err) {
@@ -182,6 +195,14 @@ export class SocketService {
 
       socket.on('auction:set-timer', (seconds) => {
         this.startAuctionTimer(seconds);
+      });
+
+      socket.on('auction:pause-timer', () => {
+        if (this.timerInterval) {
+           clearInterval(this.timerInterval);
+           this.timerInterval = null;
+           this.broadcastStatus('paused');
+        }
       });
 
       socket.on('disconnect', () => {
@@ -196,13 +217,20 @@ export class SocketService {
     
     try {
       // Update DB
-      const { error } = await supabase.from('players')
+      const { error: playerError } = await supabase.from('players')
         .update({ status: 'sold', team_name, sale_price })
         .eq('id', id);
 
-      if (error) console.error("Finalize sold error:", error);
+      if (playerError) console.error("Finalize sold player error:", playerError);
 
-      if (!error) {
+      const { error: teamPlayerError } = await supabase.from('team_players')
+        .insert([{ team_id, player_id: id, final_price: sale_price }]);
+
+      if (teamPlayerError && teamPlayerError.code !== '23505') {
+        console.error("Finalize sold team_player error:", teamPlayerError);
+      }
+
+      if (!playerError) {
         this.broadcastSold(data);
         this.broadcastRefresh();
       }
@@ -218,13 +246,19 @@ export class SocketService {
     if (this.timerInterval) clearInterval(this.timerInterval);
     
     try {
-      const { error } = await supabase.from('players')
-        .update({ status: 'unsold' })
+      const { error: playerError } = await supabase.from('players')
+        .update({ status: 'unsold', team_name: null, sale_price: null })
         .eq('id', id);
 
-      if (error) console.error("Finalize unsold error:", error);
+      if (playerError) console.error("Finalize unsold player error:", playerError);
+      
+      const { error: tpError } = await supabase.from('team_players')
+        .delete()
+        .eq('player_id', id);
+        
+      if (tpError) console.error("Finalize unsold team_player error:", tpError);
 
-      if (!error) {
+      if (!playerError) {
         this.broadcastUnsold({ id });
         this.broadcastRefresh();
       }

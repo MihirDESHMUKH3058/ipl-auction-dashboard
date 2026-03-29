@@ -53,8 +53,8 @@ export const usePlayerStore = create((set) => ({
     import('../lib/socketClient').then(m => m.socketClient.deletePlayer(playerId));
   },
 
-  generateRandomBag: (count = 10) => {
-    import('../lib/socketClient').then(m => m.socketClient.generateBag(count));
+  generateRandomBag: (count = 10, tier = null) => {
+    import('../lib/socketClient').then(m => m.socketClient.generateBag(count, tier));
   },
 
   resetSession: () => {

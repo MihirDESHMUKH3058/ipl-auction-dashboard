@@ -9,7 +9,7 @@ const AdminPlayerManager = ({ players, onAdd, onUpdate, onDelete, formatCurrency
 
   // Form states
   const [formData, setFormData] = useState({
-    name: '', role: 'Batsman', country: 'India', base_price: 20000000, image_url: ''
+    name: '', role: 'Batsman', country: 'India', base_price: 20000000, image_url: '', rating: 80
   });
 
   const filteredPlayers = players.filter(p => {
@@ -28,7 +28,7 @@ const AdminPlayerManager = ({ players, onAdd, onUpdate, onDelete, formatCurrency
       onAdd(formData);
       setIsAdding(false);
     }
-    setFormData({ name: '', role: 'Batsman', country: 'India', base_price: 20000000, image_url: '' });
+    setFormData({ name: '', role: 'Batsman', country: 'India', base_price: 20000000, image_url: '', rating: 80 });
   };
 
   const startEdit = (player) => {
@@ -38,7 +38,8 @@ const AdminPlayerManager = ({ players, onAdd, onUpdate, onDelete, formatCurrency
       role: player.role,
       country: player.country,
       base_price: player.base_price,
-      image_url: player.image_url
+      image_url: player.image_url,
+      rating: player.rating || 80
     });
     setIsAdding(true);
   };
@@ -108,10 +109,15 @@ const AdminPlayerManager = ({ players, onAdd, onUpdate, onDelete, formatCurrency
                     onError={(e) => { e.target.src = 'https://ui-avatars.com/api/?name=' + encodeURIComponent(player.name); }}
                   />
                 </div>
-                <div className="overflow-hidden">
+                <div className="overflow-hidden flex-grow">
                   <h4 className="text-lg font-headline font-black text-white uppercase italic truncate">{player.name}</h4>
                   <p className="text-[10px] font-bold text-primary uppercase tracking-widest">{player.role} • {player.country}</p>
                 </div>
+                {player.rating && (
+                  <div className="bg-white/5 px-2 py-1 rounded border border-white/10 text-amber-400 font-data text-xs">
+                    {player.rating}
+                  </div>
+                )}
               </div>
               <div className="space-y-3 pt-4 border-t border-white/5">
                 <div className="flex justify-between items-center text-[10px] font-bold uppercase text-slate-500 tracking-widest">
@@ -188,8 +194,8 @@ const AdminPlayerManager = ({ players, onAdd, onUpdate, onDelete, formatCurrency
                       <input type="number" required className="w-full bg-[#00144d] border-none focus:ring-1 focus:ring-primary rounded-2xl px-6 py-4 text-white font-data" value={formData.base_price} onChange={e => setFormData({...formData, base_price: parseInt(e.target.value)})} />
                     </div>
                     <div>
-                      <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Country</label>
-                      <input required className="w-full bg-[#00144d] border-none focus:ring-1 focus:ring-primary rounded-2xl px-6 py-4 text-white" value={formData.country} onChange={e => setFormData({...formData, country: e.target.value})} />
+                      <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Category/Rating</label>
+                      <input type="text" className="w-full bg-[#00144d] border-none focus:ring-1 focus:ring-primary rounded-2xl px-6 py-4 text-white" placeholder="e.g. 85 or SET 1" value={formData.rating || ''} onChange={e => setFormData({...formData, rating: e.target.value})} />
                     </div>
                   </div>
                 </div>

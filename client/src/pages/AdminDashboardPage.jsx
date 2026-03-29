@@ -11,6 +11,7 @@ import AdminConsole from '../components/admin/AdminConsole';
 import AdminPlayerManager from '../components/admin/AdminPlayerManager';
 import AdminTeamOverview from '../components/admin/AdminTeamOverview';
 import AdminSettings from '../components/admin/AdminSettings';
+import AdminUnsoldPlayers from '../components/admin/AdminUnsoldPlayers';
 
 const AdminDashboardPage = () => {
   const playerStore = usePlayerStore();
@@ -122,7 +123,7 @@ const AdminDashboardPage = () => {
         autoQueue={autoQueue} 
         setAutoQueue={setAutoQueue}
         availablePoolCount={players.filter(p => p.status === 'available').length}
-        onGenerateBag={() => { playerStore.generateRandomBag(10); showNotification("NEW RANDOM BAG REQUEST SENT", 'success'); }}
+        onGenerateBag={(tier) => { playerStore.generateRandomBag(10, tier); showNotification(`NEW RANDOM BAG (${tier || 'ANY'}) REQUEST SENT`, 'success'); }}
       />
 
       <main className="flex-1 lg:ml-0 overflow-y-auto p-4 sm:p-8 lg:p-12 relative h-screen pb-24">
@@ -186,18 +187,39 @@ const AdminDashboardPage = () => {
             )}
             {activeTab === 'budget' && (
               <motion.div key="budget" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}>
-                <AdminTeamOverview teams={teams} formatCurrency={formatCurrency} />
+                <AdminTeamOverview 
+                  teams={teams} 
+                  formatCurrency={formatCurrency} 
+                  onRevertPlayer={(id) => { socketClient.manualUnsold(id); showNotification("REVERTING SALE...", "warning"); }}
+                />
               </motion.div>
             )}
             {activeTab === 'draft' && (
               <motion.div key="draft" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-                <AdminTeamOverview teams={teams.filter(t => t.players?.length > 0)} formatCurrency={formatCurrency} />
+                <AdminTeamOverview 
+                  teams={teams} 
+                  formatCurrency={formatCurrency} 
+                  onRevertPlayer={(id) => { socketClient.manualUnsold(id); showNotification("REVERTING SALE...", "warning"); }}
+                />
+              </motion.div>
+            )}
+            {activeTab === 'unsold' && (
+              <motion.div key="unsold" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}>
+                <AdminUnsoldPlayers 
+                  players={players} 
+                  formatCurrency={formatCurrency}
+                  onRevert={(player) => {
+                    playerStore.updatePlayer(player.id, { status: 'available' });
+                    showNotification(`${player.name} REINSTATED TO POOL`, 'success');
+                  }}
+                />
               </motion.div>
             )}
             {activeTab === 'settings' && (
                <motion.div key="settings" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}>
                  <AdminSettings 
                    onSetTimer={(t) => { auctionStore.setTimer(t); showNotification(`TIMER RESET TO ${Math.floor(t/60)}m`, 'info'); }}
+                   onPauseTimer={() => { socketClient.pauseTimer(); showNotification("AUCTION PAUSED", 'warning'); }}
                    onResetSession={() => { playerStore.resetSession(); showNotification("SESSION RESET REQUESTED", 'error'); }}
                    onLotCleanup={() => { showNotification("CALCULATING TOTALS...", 'info'); }}
                  />

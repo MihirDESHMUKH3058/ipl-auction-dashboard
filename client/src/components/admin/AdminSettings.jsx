@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 
-const AdminSettings = ({ onSetTimer, onResetSession, onLotCleanup }) => {
+const AdminSettings = ({ onSetTimer, onPauseTimer, onResetSession, onLotCleanup }) => {
   return (
     <div className="max-w-4xl space-y-8 pb-32">
       <div className="bg-surface-container rounded-[40px] p-8 sm:p-12 border border-white/5 shadow-2xl space-y-10">
@@ -31,7 +31,24 @@ const AdminSettings = ({ onSetTimer, onResetSession, onLotCleanup }) => {
                 </button>
               ))}
             </div>
-            <button className="w-full py-4 bg-error/20 text-error text-[10px] font-black uppercase tracking-[0.2em] hover:bg-error/30 rounded-2xl transition-all border border-error/30 mt-auto">
+            <div className="flex gap-2">
+              <button 
+                onClick={onPauseTimer}
+                className="flex-1 py-3 bg-amber-500/20 text-amber-500 text-[9px] font-black uppercase rounded-xl border border-amber-500/30 hover:bg-amber-500 hover:text-black transition-all"
+              >
+                Pause Auction
+              </button>
+              <button 
+                onClick={() => onSetTimer(0)}
+                className="flex-1 py-3 bg-error/20 text-error text-[9px] font-black uppercase rounded-xl border border-error/30 hover:bg-error hover:text-white transition-all"
+              >
+                Reset Timer
+              </button>
+            </div>
+            <button 
+              onClick={() => { if(confirm('EMERGENCY STOP? This will halt the session.')) onPauseTimer(); }}
+              className="w-full py-4 bg-error/20 text-error text-[10px] font-black uppercase tracking-[0.2em] hover:bg-error/30 rounded-2xl transition-all border border-error/30 mt-auto"
+            >
               Emergency Kill Switch
             </button>
           </div>

@@ -35,6 +35,7 @@ export const useTeamStore = create((set) => ({
           const players = tps.map(tp => {
             spent += tp.final_price || tp.players?.sale_price || 0;
             return {
+              id: tp.player_id,
               name: tp.players?.name || 'Unknown Player',
               role: tp.players?.role || 'Unknown',
               sale_price: tp.final_price || tp.players?.sale_price || 0

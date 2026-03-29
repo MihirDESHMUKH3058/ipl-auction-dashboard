@@ -107,8 +107,8 @@ class SocketClient {
     this.socket.emit('admin:player-delete', id);
   }
 
-  generateBag(count) {
-    this.socket.emit('admin:bag-generate', count);
+  generateBag(count, tier = null) {
+    this.socket.emit('admin:bag-generate', { count, tier });
   }
 
   manualSold(data) {
@@ -121,6 +121,10 @@ class SocketClient {
 
   setTimer(seconds) {
     this.socket.emit('auction:set-timer', seconds);
+  }
+
+  pauseTimer() {
+    this.socket.emit('auction:pause-timer');
   }
 
   resetSession() {

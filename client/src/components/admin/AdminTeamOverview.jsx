@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 
-const AdminTeamOverview = ({ teams, formatCurrency }) => {
+const AdminTeamOverview = ({ teams, formatCurrency, onRevertPlayer }) => {
   return (
     <div className="space-y-8 pb-24">
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
@@ -47,17 +47,28 @@ const AdminTeamOverview = ({ teams, formatCurrency }) => {
                 <p className="font-data text-lg sm:text-xl text-white">{team.players.length}</p>
               </div>
               <div className="bg-surface-container-low p-2 sm:p-3 rounded-2xl border border-white/5 text-center">
-                <p className="text-[8px] sm:text-[9px] font-bold text-slate-500 uppercase">Spots Open</p>
-                <p className="font-data text-lg sm:text-xl text-primary">{25 - team.players.length}</p>
+                <p className="text-[8px] sm:text-[9px] font-bold text-slate-500 uppercase">Spots Remaining</p>
+                <p className="font-data text-lg sm:text-xl text-primary">{Math.max(0, 11 - team.players.length)} <span className="text-secondary text-sm">/ 11</span></p>
               </div>
             </div>
 
             <div className="space-y-2 max-h-[120px] overflow-y-auto no-scrollbar pt-2">
               <p className="text-[8px] font-black text-slate-600 uppercase tracking-widest sticky top-0 bg-surface-container py-1">Recent Signings</p>
               {team.players.map((p, i) => (
-                <div key={i} className="flex justify-between items-center bg-white/5 p-2 rounded-xl text-[10px]">
-                  <span className="text-slate-300 font-bold uppercase truncate pr-4">{p.name || 'Anonymous Player'}</span>
-                  <span className="font-data text-primary">₹{formatCurrency(p.sale_price)}Cr</span>
+                <div key={i} className="flex justify-between items-center bg-white/5 p-2 rounded-xl text-[10px] group/item">
+                  <div className="flex items-center gap-2 truncate pr-4">
+                    {onRevertPlayer && (
+                       <button 
+                         onClick={() => { if(confirm(`Revert ${p.name || 'this player'} to Unsold?`)) onRevertPlayer(p.id || p.player_id); }}
+                         className="opacity-0 group-hover/item:opacity-100 text-slate-500 hover:text-error transition-opacity"
+                         title="Revert to Unsold"
+                       >
+                         <span className="material-symbols-outlined text-xs">undo</span>
+                       </button>
+                    )}
+                    <span className="text-slate-300 font-bold uppercase truncate">{p.name || 'Anonymous Player'}</span>
+                  </div>
+                  <span className="font-data text-primary shrink-0">₹{formatCurrency(p.sale_price)}Cr</span>
                 </div>
               ))}
               {team.players.length === 0 && <p className="text-[8px] text-slate-700 uppercase italic py-2">Empty Roster</p>}

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 
 const AdminSidebar = ({ activeTab, setActiveTab, autoQueue, setAutoQueue, availablePoolCount, onGenerateBag }) => {
@@ -7,8 +7,11 @@ const AdminSidebar = ({ activeTab, setActiveTab, autoQueue, setAutoQueue, availa
     { id: 'manager', icon: 'person_add', label: 'Player Management' },
     { id: 'budget', icon: 'payments', label: 'Team Budgets' },
     { id: 'draft', icon: 'dashboard', label: 'Draft Board' },
+    { id: 'unsold', icon: 'block', label: 'Unsold Players' },
     { id: 'settings', icon: 'settings', label: 'System Settings' }
   ];
+
+  const [selectedTier, setSelectedTier] = useState('');
 
   return (
     <>
@@ -35,9 +38,21 @@ const AdminSidebar = ({ activeTab, setActiveTab, autoQueue, setAutoQueue, availa
 
           <div className="pt-6 border-t border-white/5">
             <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 mb-4 ml-1">Bag Control</h4>
+            <div className="flex gap-2 mb-2">
+              <select 
+                value={selectedTier} 
+                onChange={e => setSelectedTier(e.target.value)}
+                className="w-full bg-surface-container-high border border-white/10 rounded overflow-hidden text-[10px] uppercase font-bold p-1 text-slate-300"
+              >
+                <option value="">Any Tier</option>
+                <option value="80+">80+ Rating</option>
+                <option value="70-79">70-79 Rating</option>
+                <option value="60-69">60-69 Rating</option>
+              </select>
+            </div>
             <motion.button 
               whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
-              onClick={onGenerateBag}
+              onClick={() => onGenerateBag(selectedTier)}
               className="w-full py-4 bg-tertiary text-on-tertiary font-headline font-black rounded-xl shadow-lg hover:brightness-110 active:scale-95 transition-all uppercase text-[10px] flex flex-col items-center justify-center gap-1 leading-none shadow-tertiary/20"
             >
               <div className="flex items-center gap-2">
