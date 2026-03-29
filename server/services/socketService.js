@@ -250,9 +250,37 @@ export class SocketService {
     });
   }
 
+  resolveWinningSaleData(data = {}) {
+    const requestedPlayerId = data.id ?? this.currentPlayerId;
+    const isCurrentPlayer = String(requestedPlayerId) === String(this.currentPlayerId);
+
+    if (isCurrentPlayer && this.highestBidder && this.currentBid > 0) {
+      return {
+        id: this.currentPlayerId,
+        team_id: this.highestBidder.id,
+        team_name: this.highestBidder.name,
+        sale_price: this.currentBid
+      };
+    }
+
+    return {
+      id: requestedPlayerId,
+      team_id: data.team_id,
+      team_name: data.team_name,
+      sale_price: Number(data.sale_price)
+    };
+  }
+
   async finalizeSold(data) {
     if (this.timerInterval) clearInterval(this.timerInterval);
-    const { id, team_id, team_name, sale_price } = data;
+    const winningSale = this.resolveWinningSaleData(data);
+    const { id, team_id, team_name, sale_price } = winningSale;
+
+    if (!id || !team_id || !team_name || !Number.isFinite(Number(sale_price)) || Number(sale_price) <= 0) {
+      console.error('Error finalizing sold: missing highest-bid sale data', winningSale);
+      return;
+    }
+
     if (this.playerLocks.has(id)) return;
     this.playerLocks.add(id);
     

@@ -25,16 +25,8 @@ export const useAuctionStore = create((set, get) => ({
     const { currentPlayer, bids } = get();
     if (!currentPlayer || bids.length === 0) return;
 
-    const winningBid = bids[0];
-    const data = {
-      id: currentPlayer.id,
-      team_id: winningBid.team_id,
-      team_name: winningBid.team_name,
-      sale_price: winningBid.amount
-    };
-
     const { socketClient } = await import('../lib/socketClient');
-    socketClient.manualSold(data);
+    socketClient.manualSold({ id: currentPlayer.id });
   },
 
   handleUnsold: async (playerStore) => {
